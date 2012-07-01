@@ -1,0 +1,11 @@
+DEBUG:root:Main:Start Application
+DEBUG:root:MainWindow: init
+DEBUG:root:MainWindow: Create myJson class
+DEBUG:root:MyJson: init
+DEBUG:root:MainWindow: Getting data from json file
+DEBUG:root:MyJson: file not found... create new one
+DEBUG:root:MainWindow: set model for server treeview list
+DEBUG:root:MainWindow: create timer for wokers main loop
+DEBUG:root:MainWindow: connect buttons to Signals 
+DEBUG:root:MainWindow: add images for buttons
+DEBUG:root:MainWindow:terminate server workers
