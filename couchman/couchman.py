@@ -6,7 +6,7 @@ import sys
 from config import *
 import logging
 
-def run():
+def main(argv=None):
     logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG)
     logging.debug('Main:Start Application')
 
@@ -18,5 +18,5 @@ def run():
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-    print "couchman"
+    print "Type couchman to run"
 

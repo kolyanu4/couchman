@@ -1,3 +1,0 @@
-include README couchman_run
-recursive-include couchman/couchman *
-recursive-include couchman/media *
