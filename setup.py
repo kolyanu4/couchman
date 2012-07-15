@@ -1,8 +1,9 @@
-from setuptools import setup, find_packages
 import os
+from setuptools import setup, find_packages
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(name = "couchman",
     version = "0.4",
@@ -21,7 +22,7 @@ setup(name = "couchman",
         ]
     },
     long_description = read('README'),
-    classifiers=[
+    classifiers = [
         "Development Status :: 3 - Beta",
         "Topic :: Utilities",
         "License :: GPL License",

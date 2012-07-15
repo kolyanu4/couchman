@@ -1,6 +1,9 @@
-from UI.UI_MainWindow import *
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+import multiprocessing
+import logging
+import sys
+from time import sleep
+from PySide.QtCore import *
+from PySide.QtGui import *
 from couchdbcurl import Server
 from models import ServerTreeModel, TaskTreeModel
 from server_windows import ServerWindow
@@ -9,10 +12,7 @@ from db_manager import DBManager
 from workers import ServerWorker, ReplicationWorker
 from config import *
 from db_json import MyJson
-import multiprocessing
-import logging
-import sys
-from time import sleep
+from UI.UI_MainWindow import *
 
 class MainWindow(QMainWindow):
 
@@ -64,17 +64,17 @@ class MainWindow(QMainWindow):
             
         logging.debug("MainWindow: connect buttons to Signals ")
         #buttons connectors
-        self.connect(self.ui.btn_addserver, QtCore.SIGNAL("clicked()"), self.btn_add_server_react)
-        self.connect(self.ui.btn_editserver, QtCore.SIGNAL("clicked()"), self.btn_edit_server_react)
-        self.connect(self.ui.btn_rmserver, QtCore.SIGNAL("clicked()"), self.btn_rm_server_react)
-        self.connect(self.ui.btn_addtask, QtCore.SIGNAL("clicked()"), self.btn_add_replication_react)
-        self.connect(self.ui.btn_starttask, QtCore.SIGNAL("clicked()"), self.btn_start_replication_react)
-        self.connect(self.ui.btn_start_con, QtCore.SIGNAL("clicked()"), self.btn_start_con_replication_react)
-        self.connect(self.ui.btn_stoptask, QtCore.SIGNAL("clicked()"), self.btn_stop_replication_react)
-        self.connect(self.ui.btn_rmtask, QtCore.SIGNAL("clicked()"), self.btn_remove_replication_react)
-        self.connect(self.ui.btn_refresh_sel, QtCore.SIGNAL("clicked()"), self.btn_refresh_react)
+        self.ui.btn_addserver.clicked.connect(self.btn_add_server_react)
+        self.ui.btn_editserver.clicked.connect(self.btn_edit_server_react)
+        self.ui.btn_rmserver.clicked.connect(self.btn_rm_server_react)
+        self.ui.btn_addtask.clicked.connect(self.btn_add_replication_react)
+        self.ui.btn_starttask.clicked.connect(self.btn_start_replication_react)
+        self.ui.btn_start_con.clicked.connect(self.btn_start_con_replication_react)
+        self.ui.btn_stoptask.clicked.connect(self.btn_stop_replication_react)
+        self.ui.btn_rmtask.clicked.connect(self.btn_remove_replication_react)
+        self.ui.btn_refresh_sel.clicked.connect(self.btn_refresh_react)
         
-        self.connect(self.ui.btn_dbmanager, QtCore.SIGNAL("clicked()"), self.btn_dbmanager_react)
+        self.ui.btn_dbmanager.clicked.connect(self.btn_dbmanager_react)
         
         index = self.ui.tlw_servers.model().index(0,0)
         self.ui.tlw_servers.setCurrentIndex(index)
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_refresh_sel.setEnabled(True)
         #self.replicationListEnabled(False)
         
-        if cur_record.get('enabled') == '2':
+        if cur_record.get('status') == True:
             self.ui.lbl_status.setText('Enabled')
             self.tasks_model = self.model_list[cur_record['url']]
             self.ui.tlw_replications.setModel(self.tasks_model)
@@ -506,10 +506,10 @@ Error details:
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
         serv_record = self.server_model.getServByAddress(address)
         
-        if data['enabled']:
-            serv_record['enabled'] = '2'
+        if data['status']:
+            serv_record['status'] = True
         else:
-            serv_record['enabled'] = '0'
+            serv_record['status'] = False
         updeted = data.get('updated')
         serv_record['last_update'] = updeted
         self.model_list[address].update_runetime(data.get('tasks'))
@@ -517,7 +517,7 @@ Error details:
         if  selectedServer == serv_record:
             
             self.ui.lbl_lastupdate.setText(updeted.strftime(DATETIME_FMT))
-            if serv_record['enabled'] == '2':
+            if serv_record['status'] == True:
                 self.ui.lbl_status.setText('Enabled')
             else:
                 self.ui.lbl_status.setText('Disabled')  

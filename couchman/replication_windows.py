@@ -1,6 +1,6 @@
 from UI.UI_New_Task import *
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 from config import *
 from couchdbcurl import Server 
 import logging
@@ -55,11 +55,11 @@ class ReplicationWindow(QWidget):
         
         
         for i, value in enumerate(db_names):
-            self.ui.cmb_localsource.addItem(QString(value), userData=value)
+            self.ui.cmb_localsource.addItem(value, userData=value)
             if value == task_source:
                 self.ui.cmb_localsource.setCurrentIndex(i)
 
-            self.ui.cmb_localtarget.addItem(QString(value), userData=value)
+            self.ui.cmb_localtarget.addItem(value, userData=value)
             if value == task_target:
                 self.ui.cmb_localtarget.setCurrentIndex(i)
                 

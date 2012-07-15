@@ -1,1 +1,1 @@
-[]
+[{"status": false, "group": "1", "name": "1", "url": "http://kolyanu4:kolyanu4@127.0.0.1:5984", "enabled": "Checked", "last_update": null, "replications": [], "version": "-", "proxy": "", "date": "2012-07-15 03:11:02", "autoupdate": "None"}, {"status": false, "group": "1", "name": "2", "url": "http://127.0.0.1:5986", "enabled": "Checked", "last_update": null, "replications": [], "version": "-", "proxy": "", "date": "2012-07-15 02:07:08", "autoupdate": "None"}]

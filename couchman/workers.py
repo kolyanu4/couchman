@@ -15,7 +15,7 @@ class ServerWorker(multiprocessing.Process):
         self.server = server
         self.flag = True
         self.address = server['url']
-        self.db_server = Server(self.address)
+        self.db_server = Server(str(self.address))
         try:
             self.update_period = float(server.get('autoupdate'))
         except:
@@ -25,23 +25,29 @@ class ServerWorker(multiprocessing.Process):
     
     def update(self):
         #logging.debug("worker: update command for %s" % self.address)
-        try:
-            tasks = self.db_server.tasks()
-            ver = "ver. %s" % self.db_server.version
-            server_enabled = True;
-        except:
-            tasks = None
-            ver = "-"
-            server_enabled = False;
-            
+        if self.server['enabled'] == 'Checked':
+            try:
+                tasks = self.db_server.tasks()
+                ver = "ver. %s" % self.db_server.version
+                status = True
+            except:
+                tasks = None
+                ver = "-"
+                status = False
+        else:
+             ver = "-"
+             tasks = None
+             status = False
         self.last_update = time()
-   
+
+
         
         self.pipe.send({"command": "update_server", 
                         "url": self.server['url'],
-                        "data":{"enabled": server_enabled,
+                        "data":{"enabled": self.server['enabled'],
                                 "updated": datetime.now(),
                                 "version": ver,
+                                "status": status,
                                 "tasks": tasks}})
         
     def run(self):
@@ -53,7 +59,6 @@ class ServerWorker(multiprocessing.Process):
                     command = data['command']
                     if command == "update_server":
 
-                        
                         self.update()
                     elif command == "update_data":
                         self.server = data['data']

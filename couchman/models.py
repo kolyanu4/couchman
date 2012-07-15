@@ -1,7 +1,7 @@
 import logging
 from config import *
 from datetime import datetime
-from PyQt4 import QtGui, QtCore
+from PySide import QtGui, QtCore
 from operator import itemgetter
 
 class ServerTreeModel(QtCore.QAbstractTableModel):
@@ -38,7 +38,7 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
     
         elif role == QtCore.Qt.ForegroundRole:
             if index.column() == 1:
-                if(self.servers[index.row()].get('enabled') == '2'):
+                if self.servers[index.row()].get('status'):
                     return self.enabled_brush
                 else:
                     return self.disabled_brush
@@ -191,7 +191,7 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
             except IndexError:
                 pass
 
-        return QtCore.QVariant()
+        return QtCore
     
     def finde(self,source,target):
         for rec in self.tasks_rendered:

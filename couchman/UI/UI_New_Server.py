@@ -7,7 +7,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt4 import QtCore, QtGui
+from PySide import QtCore, QtGui
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -93,7 +93,7 @@ class Ui_AddServerForm(object):
         self.grp_login.setChecked(False)
         self.grp_login.setObjectName(_fromUtf8("grp_login"))
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.grp_login)
-        self.verticalLayout_2.setMargin(5)
+        self.verticalLayout_2.setSpacing(5)
         self.verticalLayout_2.setObjectName(_fromUtf8("verticalLayout_2"))
         self.formLayout_2 = QtGui.QFormLayout()
         self.formLayout_2.setFieldGrowthPolicy(QtGui.QFormLayout.ExpandingFieldsGrow)
@@ -194,7 +194,7 @@ class Ui_AddServerForm(object):
         self.group_proxy.setChecked(False)
         self.group_proxy.setObjectName(_fromUtf8("group_proxy"))
         self.horizontalLayout_2 = QtGui.QHBoxLayout(self.group_proxy)
-        self.horizontalLayout_2.setMargin(5)
+        self.horizontalLayout_2.setSpacing(5)
         self.horizontalLayout_2.setObjectName(_fromUtf8("horizontalLayout_2"))
         self.formLayout_4 = QtGui.QFormLayout()
         self.formLayout_4.setSizeConstraint(QtGui.QLayout.SetFixedSize)

@@ -1,6 +1,6 @@
 from UI.UI_DocManager import *
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 from models import DBListModel, DBViewModel
 from config import *
 from workers import ViewWorker
@@ -24,7 +24,7 @@ class DBManager(QWidget):
         i = 0
         curr = None
         for serv in self.server_list:
-            self.ui.cmb_servers.addItem(QString("[%s] %s" % (serv['group'], serv['name'], )), userData=serv)
+            self.ui.cmb_servers.addItem("[%s] %s" % (serv['group'], serv['name'], ), userData=serv)
             self.ui.cmb_servers.setItemIcon(i, QtGui.QIcon(ROOT_DIR+'/media/workgroup.png'))
             if selected_now and selected_now['url'] == serv['url']:
                 self.ui.cmb_servers.setCurrentIndex(i)

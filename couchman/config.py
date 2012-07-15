@@ -1,4 +1,4 @@
-from PyQt4.QtCore import Qt
+from PySide.QtCore import Qt
 import os
 from os.path import dirname, realpath
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'

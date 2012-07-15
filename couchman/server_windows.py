@@ -1,6 +1,6 @@
 from UI.UI_New_Server import *
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 from datetime import datetime
 import sys
 from config import *
@@ -14,6 +14,8 @@ class ServerWindow(QWidget):
         super(ServerWindow, self).__init__()
         self.ui = Ui_AddServerForm()
         self.ui.setupUi(self)
+        if role == 'edit' and serv_data['enabled'] == 'Unchecked':
+            self.ui.chb_enabled.setChecked(False)
         self.mainWindow = mainWindow
         self.serv_data = serv_data
         self.connect(self.ui.btn_cancel,QtCore.SIGNAL("clicked()"), self.btn_cancel_react)
@@ -40,11 +42,6 @@ class ServerWindow(QWidget):
             self.ui.btn_add.setText("Save")
             self.connect(self.ui.btn_add,QtCore.SIGNAL("clicked()"), self.btn_edit_react)
             
-            if serv_data['enabled'] == '2':
-                self.ui.chb_enabled.setChecked(True)
-            else:
-                self.ui.chb_enabled.setChecked(False)
-            
             self.ui.txt_name.setText(serv_data.get('name'))
             self.ui.txt_proxy.setText(serv_data.get('proxy'))
             
@@ -56,8 +53,8 @@ class ServerWindow(QWidget):
                 self.ui.group_autoupdate.setChecked(False)
         i=0
         for item in mainWindow.MAIN_DB:
-            if self.ui.cmb_group.findText(QString(item['group'])) == -1:
-                self.ui.cmb_group.addItems([QString(item['group'])])
+            if self.ui.cmb_group.findText(item['group']) == -1:
+                self.ui.cmb_group.addItems([item['group']])
                 if serv_data and serv_data['url'] == item['url']:
                     self.ui.cmb_group.setCurrentIndex(i)
             i += 1
@@ -82,7 +79,11 @@ class ServerWindow(QWidget):
                 servObj["name"] = str(self.ui.txt_name.text())
                 servObj["url"] = str(self.ui.txt_url.text())
                 servObj["group"] = str(self.ui.cmb_group.currentText())
-                servObj["enabled"] = str(self.ui.chb_enabled.checkState())
+                if self.ui.chb_enabled.isChecked():
+                    servObj["enabled"] = 'Checked'
+                else:
+                    self.serv_data["enabled"] = 'Unchecked'
+                servObj["status"] = False
                 servObj["date"] = datetime.now().strftime(DATE_FORMAT)
                 servObj["proxy"] = str(self.ui.txt_proxy.text())
                 servObj["replications"] = []
@@ -101,11 +102,14 @@ class ServerWindow(QWidget):
         
         
             url = self.serv_data["url"]
-            
             self.serv_data["name"] = str(self.ui.txt_name.text())
             self.serv_data["url"] = str(self.ui.txt_url.text())
+            self.serv_data["status"] = self.serv_data["status"]
             self.serv_data["group"] = str(self.ui.cmb_group.currentText())
-            self.serv_data["enabled"] = str(self.ui.chb_enabled.checkState())
+            if self.ui.chb_enabled.isChecked():
+                self.serv_data["enabled"] = 'Checked'
+            else:
+                self.serv_data["enabled"] = 'Unchecked'
             self.serv_data["date"] = datetime.now().strftime(DATE_FORMAT)
             self.serv_data["proxy"] = str(self.ui.txt_proxy.text())
             if self.ui.group_autoupdate.isChecked():

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from PySide.QtCore import *
+from PySide.QtGui import *
 from main_window import MainWindow
 import sys
 from config import *
@@ -19,4 +19,5 @@ def main(argv=None):
 
 if __name__ == '__main__':
     print "Type couchman to run"
+    main()
 
