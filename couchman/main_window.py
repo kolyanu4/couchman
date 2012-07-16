@@ -156,6 +156,7 @@ class MainWindow(QMainWindow):
             self.replicationListEnabled(False)
             self.empty_rep_list_status()
             
+            
     
     def replication_selection_changed(self, cur_index):
         """Signal slot for replications tree view list current index change

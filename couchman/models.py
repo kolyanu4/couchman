@@ -1,8 +1,8 @@
 import logging
-from config import *
 from datetime import datetime
 from PySide import QtGui, QtCore
 from operator import itemgetter
+from config import *
 
 class ServerTreeModel(QtCore.QAbstractTableModel):
     def __init__(self, mainWindow,parent = None):
@@ -191,7 +191,7 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
             except IndexError:
                 pass
 
-        return QtCore
+        return None
     
     def finde(self,source,target):
         for rec in self.tasks_rendered:
