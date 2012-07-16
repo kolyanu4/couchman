@@ -259,4 +259,6 @@ class Ui_AddServerForm(object):
         self.label_6.setText(QtGui.QApplication.translate("AddServerForm", "Proxy:", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_add.setText(QtGui.QApplication.translate("AddServerForm", "Add", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_cancel.setText(QtGui.QApplication.translate("AddServerForm", "Close", None, QtGui.QApplication.UnicodeUTF8))
+        self.btn_add.setShortcut(QtGui.QKeySequence.InsertParagraphSeparator)
+        self.txt_name.setFocus()
 
