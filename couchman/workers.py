@@ -235,7 +235,7 @@ class ViewWorker(multiprocessing.Process):
     def run(self):
         if self.command == "get_info":
             try:
-                result = self.db.design_info(self.params["row_id"])
+                result = self.db.design_info(str(self.params["row_id"]))
                 self.send_result(result)
             except:
                 self.send_error(sys.exc_info()[1])

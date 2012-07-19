@@ -38,7 +38,7 @@ class MyJson():
                 item['last_update'] = None
                 
             with open(DB_FILE_PATH, 'w') as f:
-                    json.dump(dump, f, separators=(', ', ': '))
+                    json.dump(dump, f, indent=4, separators=(', ', ': '))
             logging.debug('MyJson: save json complete')
             return True
         except:

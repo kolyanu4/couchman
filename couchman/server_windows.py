@@ -8,7 +8,7 @@ from couchdbcurl import Server
 import logging
 import urlparse
 
-class ServerWindow(QWidget):
+class ServerWindow(QDialog):
 
     def __init__(self, mainWindow,role,serv_data):
         super(ServerWindow, self).__init__()
@@ -41,7 +41,6 @@ class ServerWindow(QWidget):
         else:
             self.ui.btn_add.setText("Save")
             self.connect(self.ui.btn_add,QtCore.SIGNAL("clicked()"), self.btn_edit_react)
-            self.ui.btn_add.setShortcut(QtGui.QKeySequence.InsertParagraphSeparator)
             
             self.ui.txt_name.setText(serv_data.get('name'))
             self.ui.txt_proxy.setText(serv_data.get('proxy'))
