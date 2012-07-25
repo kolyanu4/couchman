@@ -237,7 +237,7 @@ class DBManager(QWidget):
             connector.start()
         elif command == "cleanup_views":
             try:
-                result = self.selected_db.view_cleanup
+                result = self.selected_db.view_cleanup()
                 if result:
                     QMessageBox(QMessageBox.Information, 'Information', 
 '''"Cleanup Views" was initiated successfully!!!
@@ -251,7 +251,7 @@ Date: %s''' % (self.server['url'], self.selected_db.name, datetime.now().strftim
         
         elif command == "compact_db" :
             try:
-                self.selected_db.compact
+                self.selected_db.compact()
                 QMessageBox(QMessageBox.Information, 'Information', 
 '''"Compact Database" was initiated successfully!!!
 Server url: "%s"
