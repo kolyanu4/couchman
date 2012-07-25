@@ -1,11 +1,8 @@
-import multiprocessing
+import sys, multiprocessing, logging
 from time import sleep,time
 from datetime import datetime 
-
-import logging
-from config import DATETIME_FMT
 from couchdbcurl import Server
-import sys
+from config import DATETIME_FMT
 
 class ServerWorker(multiprocessing.Process):
     
@@ -210,7 +207,7 @@ class ViewWorker(multiprocessing.Process):
         self.params = params
         self.command = command
         self.address = url
-        self.db_server = Server(self.address)
+        self.db_server = Server(str(self.address))
         self.db = self.db_server[db_name]
         
     
@@ -246,10 +243,3 @@ class ViewWorker(multiprocessing.Process):
                 self.send_result("")
             except:
                 self.send_error(sys.exc_info()[1])
-            
-
-
-            
-        
-            
-        

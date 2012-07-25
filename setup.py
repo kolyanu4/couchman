@@ -2,6 +2,7 @@ import os
 from setuptools import setup, find_packages
 
 def read(fname):
+    """ Return the text of the file fname """
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 

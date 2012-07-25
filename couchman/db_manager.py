@@ -1,14 +1,13 @@
-from UI.UI_DocManager import *
+import multiprocessing, logging, sys
+from datetime import datetime 
 from PySide.QtCore import *
 from PySide.QtGui import *
+from couchdbcurl import Server 
+from UI.UI_DocManager import *
 from models import DBListModel, DBViewModel
 from config import *
 from workers import ViewWorker
-from couchdbcurl import Server 
-from datetime import datetime 
-import multiprocessing
-import logging
-import sys
+
 
 class DBManager(QWidget):
 
@@ -16,6 +15,8 @@ class DBManager(QWidget):
         super(DBManager, self).__init__()
         self.ui = Ui_DocManager()
         self.ui.setupUi(self)
+        self.win_name = "%s - %s"%(self.windowTitle(), selected_now['name'])
+        self.setWindowTitle(self.win_name)
         self.mainWindow = mainWindow
         self.server_list = server_list
         self.server_view_list = server_view_list
@@ -73,7 +74,7 @@ class DBManager(QWidget):
             
         self.cur_server_dbs = self.server_view_list[self.server['url']]
         try:
-            self.selected_server = Server(self.server['url'])
+            self.selected_server = Server(str(self.server['url']))
         except:
             self.selected_server = None
         
@@ -132,6 +133,8 @@ class DBManager(QWidget):
 
             view_list.append(self.cur_server_dbs[self.selected_db.name][row.id])
         
+        win_name = "%s - %s"%(self.win_name, self.selected_db.name)
+        self.setWindowTitle(win_name)
         
         if len(view_list) > 0:
             self.ui.btn_refresh_all.setEnabled(True)
