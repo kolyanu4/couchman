@@ -7,6 +7,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
+import pkg_resources
 from PySide import QtCore, QtGui
 
 try:
@@ -165,12 +166,12 @@ class Ui_MainWindow(object):
         self.actionAdd_Server.setObjectName(_fromUtf8("actionAdd_Server"))
         self.actionRemove_Server = QtGui.QAction(MainWindow)
         self.actionRemove_Server.setObjectName(_fromUtf8("actionRemove_Server"))
-
+        self.revision = pkg_resources.get_distribution("couchman").version
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Replication Manager", None, QtGui.QApplication.UnicodeUTF8))
+        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", ("Replication Manager - %s" % self.revision), None, QtGui.QApplication.UnicodeUTF8))
         self.btn_addserver.setToolTip(QtGui.QApplication.translate("MainWindow", "Add server record to persisted list", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_addserver.setText(QtGui.QApplication.translate("MainWindow", "Add", None, QtGui.QApplication.UnicodeUTF8))
         self.btn_rmserver.setToolTip(QtGui.QApplication.translate("MainWindow", "Remove server record from persisted list", None, QtGui.QApplication.UnicodeUTF8))

@@ -7,7 +7,7 @@ def read(fname):
 
 
 setup(name = "couchman",
-    version = "0.4",
+    version = "%s-%s" % ("0.4",read("version.txt")),
     description = "derived work of the Krayzman's project https://github.com/kraizman/couchman",
     author = "Nikolay Gavrilyuk",
     author_email = "nikolay.gavrilyuk@smscoin.com",
