@@ -15,8 +15,8 @@ class DBManager(QWidget):
         super(DBManager, self).__init__()
         self.ui = Ui_DocManager()
         self.ui.setupUi(self)
-        self.win_name = "%s - %s"%(self.windowTitle(), selected_now['name'])
-        self.setWindowTitle(self.win_name)
+        self.win_name = self.windowTitle()
+        self.setWindowTitle("%s - %s"%(self.win_name, selected_now['name']))
         self.mainWindow = mainWindow
         self.server_list = server_list
         self.server_view_list = server_view_list
@@ -69,6 +69,7 @@ class DBManager(QWidget):
             Clear old data and create and populate database list of selected server
         """
         self.server = self.server_list[index]
+        self.setWindowTitle("%s - %s"%(self.win_name, self.server['name']))
         if self.server_view_list.get(self.server['url']) is None:
             self.server_view_list[self.server['url']] = {}
             
@@ -133,7 +134,7 @@ class DBManager(QWidget):
 
             view_list.append(self.cur_server_dbs[self.selected_db.name][row.id])
         
-        win_name = "%s - %s"%(self.win_name, self.selected_db.name)
+        win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)
         self.setWindowTitle(win_name)
         
         if len(view_list) > 0:
