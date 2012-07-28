@@ -1,12 +1,10 @@
-from UI.UI_New_Server import *
+import sys, urlparse, logging
+from datetime import datetime
+from couchdbcurl import Server
 from PySide.QtCore import *
 from PySide.QtGui import *
-from datetime import datetime
-import sys
+from UI.UI_New_Server import *
 from config import *
-from couchdbcurl import Server
-import logging
-import urlparse
 
 class ServerWindow(QDialog):
 
@@ -59,10 +57,6 @@ class ServerWindow(QDialog):
                     self.ui.cmb_group.setCurrentIndex(i)
             i += 1
         
-        
-        
-        
-            
     def btn_add_react(self):
         #validating
         
@@ -99,8 +93,6 @@ class ServerWindow(QDialog):
     def btn_edit_react(self):
         
         if self.validate():
-        
-        
             url = self.serv_data["url"]
             self.serv_data["name"] = str(self.ui.txt_name.text())
             self.serv_data["url"] = str(self.ui.txt_url.text())

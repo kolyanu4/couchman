@@ -84,8 +84,12 @@ class DBManager(QWidget):
             db_names = []       
             for db in self.selected_server:
                 if self.cur_server_dbs.get(db) is None:
-                    info = self.selected_server[db].info()
-                    self.cur_server_dbs[db] = {"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
+                    try:
+                        info = self.selected_server[db].info()
+                        self.cur_server_dbs[db] = {"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
+                    except:
+                        print info
+                    
                     
                 db_names.append(db)
             db_names.sort()
@@ -123,7 +127,10 @@ class DBManager(QWidget):
         
         """
         self.selected_db = self.selected_server[self.db_model.db_list[index.row()]]
-        row_list = self.selected_db.view('_all_docs', startkey = "_design/", endkey = "_design0").rows
+        try:
+            row_list = self.selected_db.view('_all_docs', startkey = "_design/", endkey = "_design0").rows
+        except: 
+            logging.debug('DB Manager: no database found on db selection changed')
                
         view_list = []
         for row in row_list:
@@ -137,12 +144,11 @@ class DBManager(QWidget):
         win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)
         self.setWindowTitle(win_name)
         
-        if len(view_list) > 0:
-            self.ui.btn_refresh_all.setEnabled(True)
-            if self.cur_server_dbs[self.selected_db.name]["last_refresh"] == "Unknown":
-                self.ui.lbl_last_update.setText("Unknown")
-            else:
-                self.ui.lbl_last_update.setText(self.cur_server_dbs[self.selected_db.name]["last_refresh"].strftime(DATETIME_FMT))
+        self.ui.btn_refresh_all.setEnabled(True)
+        if self.cur_server_dbs[self.selected_db.name]["last_refresh"] == "Unknown":
+            self.ui.lbl_last_update.setText("Unknown")
+        else:
+            self.ui.lbl_last_update.setText(self.cur_server_dbs[self.selected_db.name]["last_refresh"].strftime(DATETIME_FMT))
                 
         
         self.view_model = DBViewModel(view_list)
@@ -170,19 +176,50 @@ class DBManager(QWidget):
         
             Create worker for each view of selected database and send signal for update information about it
         """
-        cur_timestamp = datetime.now()
-        self.cur_server_dbs[self.selected_db.name]['last_refresh'] = cur_timestamp
         
-        info = self.selected_server[self.selected_db.name].info()
-        self.cur_server_dbs[self.selected_db.name]["size"] = info['disk_size']
-        self.cur_server_dbs[self.selected_db.name]["docs"] = info['doc_count']
+        prev_data = []
+        for a in self.ui.tlw_db_list.selectedIndexes():
+            prev_data.append(a.data())
         
-        self.ui.lbl_last_update.setText(cur_timestamp.strftime(DATETIME_FMT))
-        for row in self.view_model.view_list:
-            self.start_view_worker("get_info", {"row_id": row['id']})
-            row["refreshing"] = "now"
-        self.view_model.update_data()
-        self.db_model.update_data()
+        db_names = []       
+        for db in self.selected_server:
+            if self.cur_server_dbs.get(db) is None:
+                info = self.selected_server[db].info()
+                self.cur_server_dbs[db] = {"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']} 
+            db_names.append(db)
+        db_names.sort()
+        
+        self.db_model = DBListModel(self.cur_server_dbs, db_names)
+        self.ui.tlw_db_list.setModel(self.db_model)
+        
+        tlw_db_list_sel_model = self.ui.tlw_db_list.selectionModel()
+        i = 0
+        while i < self.ui.tlw_db_list.model().rowCount():
+            if self.ui.tlw_db_list.model().index(i,0).data() == prev_data[0]:
+                j = 0
+                while j < self.ui.tlw_db_list.model().columnCount():
+                    tlw_db_list_sel_model.select(self.ui.tlw_db_list.model().index(i,j),QItemSelectionModel.Select)
+                    j += 1
+            i += 1
+        
+        try:
+            cur_timestamp = datetime.now()
+            self.cur_server_dbs[self.selected_db.name]['last_refresh'] = cur_timestamp
+        
+            info = self.selected_server[self.selected_db.name].info()
+            self.cur_server_dbs[self.selected_db.name]["size"] = info['disk_size']
+            self.cur_server_dbs[self.selected_db.name]["docs"] = info['doc_count']
+        
+            self.ui.lbl_last_update.setText(cur_timestamp.strftime(DATETIME_FMT))
+            for row in self.view_model.view_list:
+                self.start_view_worker("get_info", {"row_id": row['id']})
+                row["refreshing"] = "now"
+            self.view_model.update_data()
+            self.db_model.update_data()
+        except:
+            logging.debug('DB Manager: no database found on refresh')
+            self.view_model.view_list = []
+            self.view_model.update_data()
         
     def btn_ping_react(self):
         """Slot for signal "clicked()" of "Ping" button
