@@ -285,19 +285,21 @@ class DBListModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         if not index.isValid():
             return None
+        name = self.db_list[index.row()]
         if role == QtCore.Qt.DisplayRole:
             if index.column() == 0:
                 return self.db_list[index.row()]
             elif index.column() == 1:
-                name = self.db_list[index.row()]
                 size_byte = self.server_dbs[name]["size"]
                 return self.splitthousands(str(size_byte))
             elif index.column() == 2:
-                name = self.db_list[index.row()]
                 return self.splitthousands(str(self.server_dbs[name]["docs"]))
 
         elif role == QtCore.Qt.DecorationRole:
             if index.column() == 0:
+                connect = self.server_dbs[name]["connect"]
+                if not connect:
+                    return QtGui.QIcon(ROOT_DIR+'/media/circle_red.png')
                 return QtGui.QIcon(ROOT_DIR+'/media/database.png')
             
         elif role == QtCore.Qt.TextAlignmentRole:

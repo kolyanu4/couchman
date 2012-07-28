@@ -86,11 +86,19 @@ class DBManager(QWidget):
                 if self.cur_server_dbs.get(db) is None:
                     try:
                         info = self.selected_server[db].info()
-                        self.cur_server_dbs[db] = {"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
+                        self.cur_server_dbs[db] = {"connect":True,"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
                     except:
-                        print info
-                    
-                    
+                        self.cur_server_dbs[db] = {"connect":False,"last_refresh":"Unknown", "name":db, "size":"-", "docs":"-"}
+                else:
+                    try:
+                        info = self.selected_server[db].info()
+                        self.cur_server_dbs[db]["connect"] = True
+                        self.cur_server_dbs[db]["size"] = info['disk_size']
+                        self.cur_server_dbs[db]["docs"] = info['doc_count']
+                    except:
+                        self.cur_server_dbs[db]["connect"] = False
+                        self.cur_server_dbs[db]["size"] = "-"
+                        self.cur_server_dbs[db]["docs"] = "-"
                 db_names.append(db)
             db_names.sort()
             
@@ -127,39 +135,38 @@ class DBManager(QWidget):
         
         """
         self.selected_db = self.selected_server[self.db_model.db_list[index.row()]]
-        try:
-            row_list = self.selected_db.view('_all_docs', startkey = "_design/", endkey = "_design0").rows
-        except: 
-            logging.debug('DB Manager: no database found on db selection changed')
-               
-        view_list = []
-        for row in row_list:
-            name = row.key[8:]
-           
-            if self.cur_server_dbs[self.selected_db.name].get(row.id) is None:
-                self.cur_server_dbs[self.selected_db.name][row.id] = {"name":name, "revision":row.value['rev'], "id": row.id}
-
-            view_list.append(self.cur_server_dbs[self.selected_db.name][row.id])
-        
         win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)
         self.setWindowTitle(win_name)
+        
+        view_list = []
+        try:
+            row_list = self.selected_db.view('_all_docs', startkey = "_design/", endkey = "_design0").rows
+            for row in row_list:
+                name = row.key[8:]
+                if self.cur_server_dbs[self.selected_db.name].get(row.id) is None:
+                    self.cur_server_dbs[self.selected_db.name][row.id] = {"name":name, "revision":row.value['rev'], "id": row.id}
+                view_list.append(self.cur_server_dbs[self.selected_db.name][row.id])
+        except: 
+            print sys.exc_info()[1]
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Critical)
+            msgBox.setText("%s" % sys.exc_info()[1])
+            msgBox.exec_()
+            logging.debug('DB Manager: no database found on db selection changed or you dont have permisions')
         
         self.ui.btn_refresh_all.setEnabled(True)
         if self.cur_server_dbs[self.selected_db.name]["last_refresh"] == "Unknown":
             self.ui.lbl_last_update.setText("Unknown")
         else:
             self.ui.lbl_last_update.setText(self.cur_server_dbs[self.selected_db.name]["last_refresh"].strftime(DATETIME_FMT))
-                
-        
         self.view_model = DBViewModel(view_list)
         self.ui.tlw_view_list.setModel(self.view_model)
-        
         self.ui.btn_clean_views.setEnabled(True)
         self.ui.btn_compact_db.setEnabled(True)
         self.ui.btn_compact_views.setEnabled(True)
-        
         for i in range(self.view_model.columnCount()):
             self.ui.tlw_view_list.resizeColumnToContents(i)        
+            
             
     def view_selection_changed(self):
         """Slot for signal "list_currentChanged" of view tree view list
@@ -176,16 +183,25 @@ class DBManager(QWidget):
         
             Create worker for each view of selected database and send signal for update information about it
         """
-        
-        prev_data = []
-        for a in self.ui.tlw_db_list.selectedIndexes():
-            prev_data.append(a.data())
-        
         db_names = []       
         for db in self.selected_server:
             if self.cur_server_dbs.get(db) is None:
-                info = self.selected_server[db].info()
-                self.cur_server_dbs[db] = {"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']} 
+                try:
+                    info = self.selected_server[db].info()
+                    self.cur_server_dbs[db] = {"connect":True,"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
+                except:
+                    self.cur_server_dbs[db] = {"connect":False,"last_refresh":"Unknown", "name":db, "size":"-", "docs":"-"}
+            else:
+                try:
+                    info = self.selected_server[db].info()
+                    self.cur_server_dbs[db]["connect"] = True
+                    self.cur_server_dbs[db]["size"] = info['disk_size']
+                    self.cur_server_dbs[db]["docs"] = info['doc_count']
+                except:
+                    self.cur_server_dbs[db]["connect"] = False
+                    self.cur_server_dbs[db]["size"] = "-"
+                    self.cur_server_dbs[db]["docs"] = "-"
+            
             db_names.append(db)
         db_names.sort()
         
@@ -195,12 +211,13 @@ class DBManager(QWidget):
         tlw_db_list_sel_model = self.ui.tlw_db_list.selectionModel()
         i = 0
         while i < self.ui.tlw_db_list.model().rowCount():
-            if self.ui.tlw_db_list.model().index(i,0).data() == prev_data[0]:
+            if self.ui.tlw_db_list.model().index(i,0).data() == self.selected_db.name:
                 j = 0
                 while j < self.ui.tlw_db_list.model().columnCount():
                     tlw_db_list_sel_model.select(self.ui.tlw_db_list.model().index(i,j),QItemSelectionModel.Select)
                     j += 1
             i += 1
+        
         
         try:
             cur_timestamp = datetime.now()
@@ -217,7 +234,7 @@ class DBManager(QWidget):
             self.view_model.update_data()
             self.db_model.update_data()
         except:
-            logging.debug('DB Manager: no database found on refresh')
+            logging.debug('DB Manager: no database found on refresh or you dont have permisions')
             self.view_model.view_list = []
             self.view_model.update_data()
         
@@ -400,8 +417,7 @@ Done on: %s''' % (data['url'], data['db_name'], data["params"]["view_name"], dat
             for i in range(self.view_model.columnCount()):
                 self.ui.tlw_view_list.resizeColumnToContents(i) 
             
-
-        
+    
     def closeEvent(self,event):
         try:
             self.mainWindow.dbmanager_windows.remove(self)
