@@ -15,6 +15,10 @@ class DBManager(QWidget):
         super(DBManager, self).__init__()
         self.ui = Ui_DocManager()
         self.ui.setupUi(self)
+        self.close_action = QtGui.QAction(self)
+        self.close_action.setShortcut(QKeySequence.Close)
+        self.addAction(self.close_action)
+        self.connect(self.close_action, SIGNAL("triggered()"), self, SLOT("close()"))
         self.win_name = self.windowTitle()
         self.setWindowTitle("%s - %s"%(self.win_name, selected_now['name']))
         self.mainWindow = mainWindow

@@ -120,7 +120,6 @@ class Ui_DocManager(object):
         self.horizontalLayout_2.addItem(spacerItem2)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.verticalLayout_3.addWidget(self.splitter)
-
         self.retranslateUi(DocManager)
         QtCore.QMetaObject.connectSlotsByName(DocManager)
 
