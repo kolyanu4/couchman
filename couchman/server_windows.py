@@ -49,13 +49,14 @@ class ServerWindow(QDialog):
             
             if self.serv_data['autoupdate'] == 'None':
                 self.ui.group_autoupdate.setChecked(False)
+        
         i=0
         for item in mainWindow.MAIN_DB:
             if self.ui.cmb_group.findText(item['group']) == -1:
                 self.ui.cmb_group.addItems([item['group']])
                 if serv_data and serv_data['url'] == item['url']:
                     self.ui.cmb_group.setCurrentIndex(i)
-            i += 1
+                i += 1
         
     def btn_add_react(self):
         #validating

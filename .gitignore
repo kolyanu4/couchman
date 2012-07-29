@@ -1,3 +1,6 @@
 *.pyc
 db.json
 monitor.log
+build/
+couchman.egg-info/
+dist/

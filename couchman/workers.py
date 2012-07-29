@@ -1,6 +1,6 @@
 import sys, multiprocessing, logging
 from time import sleep,time
-from datetime import datetime 
+from datetime import datetime, timedelta
 from couchdbcurl import Server
 from config import DATETIME_FMT
 
@@ -8,6 +8,7 @@ class ServerWorker(multiprocessing.Process):
     
     def __init__(self,pipe,server):
         multiprocessing.Process.__init__(self)
+        self.tries = 0
         self.pipe = pipe
         self.server = server
         self.flag = True
@@ -25,27 +26,33 @@ class ServerWorker(multiprocessing.Process):
         if self.server['enabled'] == 'Checked':
             try:
                 tasks = self.db_server.tasks()
-                ver = "ver. %s" % self.db_server.version
-                status = True
             except:
                 tasks = None
+                
+            try:
+                    ver = "ver. %s" % self.db_server.version
+                    status = True
+                    self.tries = 0
+            except:
                 ver = "-"
                 status = False
+                self.tries += 1 
         else:
-             ver = "-"
-             tasks = None
-             status = False
+            ver = "-"
+            tasks = None
+            status = False
         self.last_update = time()
-
-
-        
+        if self.tries:
+            update = datetime.now() - timedelta(seconds = self.update_period * self.tries)
+        else:
+            update = datetime.now()
         self.pipe.send({"command": "update_server", 
                         "url": self.server['url'],
                         "data":{"enabled": self.server['enabled'],
-                                "updated": datetime.now(),
+                                "updated": update,
                                 "version": ver,
                                 "status": status,
-                                "tasks": tasks}})
+                                "tasks": tasks,}})
         
     def run(self):
         while self.flag:
@@ -55,12 +62,11 @@ class ServerWorker(multiprocessing.Process):
                 if "command" in data:
                     command = data['command']
                     if command == "update_server":
-
                         self.update()
                     elif command == "update_data":
                         self.server = data['data']
                         self.address = self.server['url']
-                        self.db_server = Server(self.address)
+                        self.db_server = Server(str(self.address))
                         try:
                             self.update_period = float(self.server.get('autoupdate'))
                         except:
@@ -74,7 +80,7 @@ class ServerWorker(multiprocessing.Process):
                 
             sleep(0.05)
             
-            if self.update_period and time() > self.last_update + self.update_period:
+            if self.update_period and time() > self.last_update + self.update_period and self.server['enabled'] == "Checked":
                 self.update()
                 
                 
@@ -94,7 +100,7 @@ class ReplicationWorker(multiprocessing.Process):
         self.flag = True
         server = data.get('server')
         self.server_address = server.get('url')
-        self.db_server = Server(self.server_address)
+        self.db_server = Server(str(self.server_address))
         self.flag = True
         
         

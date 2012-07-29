@@ -19,7 +19,7 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
         
 
     def columnCount(self, parent=None):
-            return len(self.headers)
+        return len(self.headers)
         
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.servers)
@@ -37,17 +37,17 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
                 return self.servers[index.row()].get('version')
     
         elif role == QtCore.Qt.ForegroundRole:
-            if index.column() == 1:
-                if self.servers[index.row()].get('status'):
-                    return self.enabled_brush
-                else:
-                    return self.disabled_brush
+            if self.servers[index.row()].get('enabled') == "Checked":
+                return self.enabled_brush
+            else:
+                return self.disabled_brush
         elif role == SERVER_INFO_ROLE:
             return self.servers[index.row()]
         elif role == QtCore.Qt.DecorationRole:
             if index.column() == 0:
                 obj = self.servers[index.row()]
                 last = obj.get('last_update')
+                flag_enabled = obj.get('enabled')
                 if last:
                     delta = datetime.now() - last
                     dif = delta.seconds
@@ -59,11 +59,11 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
                 else:
                     period = float(str_autoupdate)
                     
-                if period < 0:
+                if period < 0 or flag_enabled != 'Checked':
                     return QtGui.QIcon(ROOT_DIR+'/media/circle_blue.png')
-                elif dif > 5 * period:
+                elif dif > 6 * period:
                     return QtGui.QIcon(ROOT_DIR+'/media/circle_red.png')
-                elif dif > 2 * period:
+                elif dif > 3 * period:
                     return QtGui.QIcon(ROOT_DIR+'/media/circle_orange.png')
                 else:
                     return QtGui.QIcon(ROOT_DIR+'/media/circle_green.png')

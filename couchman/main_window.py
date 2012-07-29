@@ -27,7 +27,12 @@ class MainWindow(QMainWindow):
         logging.debug('MainWindow: Getting data from json file')
         self.MAIN_DB = self.myJson.readFromDB()
         
-       
+        #exit on Ctrl-Q/Cmd-Q
+        self.exit_action = QtGui.QAction(self)
+        self.exit_action.setShortcut(QKeySequence.Quit)
+        self.addAction(self.exit_action)
+        self.connect(self.exit_action, SIGNAL("triggered()"), self, SLOT("close()"))
+        
         #set model for server treeview
         logging.debug("MainWindow: set model for server treeview list")
         self.server_model = ServerTreeModel(self)

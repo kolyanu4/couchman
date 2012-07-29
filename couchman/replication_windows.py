@@ -7,7 +7,7 @@ import logging
 import urlparse
 import json
 
-class ReplicationWindow(QWidget):
+class ReplicationWindow(QDialog):
     def __init__(self,mainWindow,server_obj, replication_record):
         super(ReplicationWindow, self).__init__()
         self.ui = Ui_New_Task_Form()
@@ -20,24 +20,18 @@ class ReplicationWindow(QWidget):
         else:
             cur_type = -1
 
-        self.ui.btn_save.setText("Add")
         self.connect(self.ui.btn_save, QtCore.SIGNAL("clicked()"), self.add_react)
-        
         self.connect(self.ui.txt_remotesource, QtCore.SIGNAL("returnPressed()"), self.add_react)
         self.connect(self.ui.txt_remotetarget, QtCore.SIGNAL("returnPressed()"), self.add_react)
         self.connect(self.ui.txt_proxy, QtCore.SIGNAL("returnPressed()"), self.add_react)
-        
         self.connect(self, QtCore.SIGNAL("keyPressEvent( QKeyEvent *)"), self.key_pressed)
-        
         self.connect(self.ui.btn_getfilters, QtCore.SIGNAL("clicked()"), self.fill_filters)
-        
         self.connect(self.ui.rdb_localsource, QtCore.SIGNAL("toggled(bool)"), self.localsource_toggeled)
         self.connect(self.ui.rdb_localtarget, QtCore.SIGNAL("toggled(bool)"), self.localtarget_toggeled)
-        
         self.connect(self.ui.cmb_localsource, QtCore.SIGNAL("currentIndexChanged (int)"), self.clear_filters)
         
         db_names = []       
-        for db in Server(self.server_obj['url']):
+        for db in Server(str(self.server_obj['url'])):
             db_names.append(db)
         db_names.sort()
         
@@ -107,7 +101,7 @@ class ReplicationWindow(QWidget):
         filter_list = []
 
         try:
-            remote_serv = Server(server)
+            remote_serv = Server(str(server))
             remote_db = remote_serv[db]
             filter_list = self.filter_functions(remote_db)
             self.ui.cmb_filters.clear()
