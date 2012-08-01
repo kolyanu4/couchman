@@ -24,7 +24,7 @@ class MyJson():
             with open(DB_FILE_PATH, 'w') as f:
                 json.dump(body, f)     
             
-            print os.path.abspath(DB_FILE_PATH)
+            print DB_FILE_PATH
             
             self.MAIN_DB = body
         return self.getManDB()
