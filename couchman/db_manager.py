@@ -77,6 +77,7 @@ class DBManager(QWidget):
         if self.server_view_list.get(self.server['url']) is None:
             self.server_view_list[self.server['url']] = {}
             
+        ############### SEND TO THREAD #################
         self.cur_server_dbs = self.server_view_list[self.server['url']]
         try:
             self.selected_server = Server(str(self.server['url']))
@@ -84,6 +85,7 @@ class DBManager(QWidget):
             self.selected_server = None
         
         self.disabling_refresh()
+        
         if self.selected_server:
             db_names = []       
             for db in self.selected_server:
@@ -106,7 +108,6 @@ class DBManager(QWidget):
                 db_names.append(db)
             db_names.sort()
             
-      
             self.db_model = DBListModel(self.cur_server_dbs, db_names)
             self.ui.tlw_db_list.setModel(self.db_model)
             
@@ -116,6 +117,7 @@ class DBManager(QWidget):
                 self.ui.btn_compact_db.setEnabled(False)
                 self.ui.btn_compact_views.setEnabled(False)
                 self.ui.btn_ping.setEnabled(False)
+        
         else:
             self.db_model = DBListModel([])
             self.ui.tlw_db_list.setModel(self.db_model)          
@@ -131,7 +133,7 @@ class DBManager(QWidget):
         
         for i in range(self.db_model.columnCount()):
             self.ui.tlw_db_list.resizeColumnToContents(i) 
-        
+        ################### END SEND TO THREAD #################
         
     def db_selection_changed(self, index):
         """Slot for signal "list_currentChanged" of database tree view list
@@ -187,6 +189,7 @@ class DBManager(QWidget):
         
             Create worker for each view of selected database and send signal for update information about it
         """
+        ############### SEND TO THREAD #################
         db_names = []       
         for db in self.selected_server:
             if self.cur_server_dbs.get(db) is None:
@@ -221,8 +224,7 @@ class DBManager(QWidget):
                     tlw_db_list_sel_model.select(self.ui.tlw_db_list.model().index(i,j),QItemSelectionModel.Select)
                     j += 1
             i += 1
-        
-        
+
         try:
             cur_timestamp = datetime.now()
             self.cur_server_dbs[self.selected_db.name]['last_refresh'] = cur_timestamp
@@ -241,6 +243,7 @@ class DBManager(QWidget):
             logging.debug('DB Manager: no database found on refresh or you dont have permisions')
             self.view_model.view_list = []
             self.view_model.update_data()
+        ################### END SEND TO THREAD #################
         
     def btn_ping_react(self):
         """Slot for signal "clicked()" of "Ping" button
@@ -299,7 +302,7 @@ class DBManager(QWidget):
                 result = self.selected_db.view_cleanup()
                 if result:
                     QMessageBox(QMessageBox.Information, 'Information', 
-'''"Cleanup Views" was initiated successfully!!!
+'''"Cleanup Views" was initiated successfully.
 Server url: "%s"
 Database name: "%s"
 Date: %s''' % (self.server['url'], self.selected_db.name, datetime.now().strftime(DATETIME_FMT),), QtGui.QMessageBox.Ok).exec_() 
@@ -312,7 +315,7 @@ Date: %s''' % (self.server['url'], self.selected_db.name, datetime.now().strftim
             try:
                 self.selected_db.compact()
                 QMessageBox(QMessageBox.Information, 'Information', 
-'''"Compact Database" was initiated successfully!!!
+'''"Compact Database" was initiated successfully.
 Server url: "%s"
 Database name: "%s"
 Date: %s''' % (self.server['url'], self.selected_db.name, datetime.now().strftime(DATETIME_FMT),), QtGui.QMessageBox.Ok).exec_()             
@@ -328,7 +331,7 @@ Date: %s''' % (self.server['url'], self.selected_db.name, datetime.now().strftim
                     result_arr.append("%s: %s" % (view["name"], {True: "Yes", False: "No"}[result],))
                 report = "\n".join(["%s" % d for d in result_arr])
                 QMessageBox(QMessageBox.Information, 'Information', 
-'''"Compact Views" was initiated successfully!!!
+'''"Compact Views" was initiated successfully.
 Server url: "%s"
 Database name: "%s"
 Date: %s
@@ -340,7 +343,7 @@ Report: %s''' % (self.server['url'], self.selected_db.name, datetime.now().strft
                 result = self.selected_db.compact_view(params["view_name"])
                 report = "%s: %s" % (params["view_name"], {True: "Yes", False: "No"}[result],)
                 QMessageBox(QMessageBox.Information, 'Information', 
-'''"Compact View" was initiated successfully!!!
+'''"Compact View" was initiated successfully.
 Server url: "%s"
 Database name: "%s"
 View name: %s
@@ -403,7 +406,7 @@ Error: %s''' % (data["command"], data['url'], data['db_name'], data["params"], d
                             
                         elif data["command"] == "ping":
                             QMessageBox(QMessageBox.Information, 'Information', 
-'''Ping complete successfully!!!
+'''Ping complete successfully.
 Server url: "%s"
 Database name: "%s"
 View name: "%s"

@@ -1,10 +1,9 @@
-import json
-import sys
+import json, sys, logging
 import os.path
-from config import *
-import logging
 from copy import deepcopy
+from config import *
 from pprint import pprint
+
 class MyJson():
     def __init__(self):
         logging.debug('MyJson: init')
@@ -18,8 +17,6 @@ class MyJson():
             logging.debug('MyJson: file exist... start reading')
             with open(DB_FILE_PATH, 'r') as f:
                 self.MAIN_DB = json.load(f)
-                
-
         else:
             logging.debug('MyJson: file not found... create new one')
             body = []
@@ -27,13 +24,15 @@ class MyJson():
             with open(DB_FILE_PATH, 'w') as f:
                 json.dump(body, f)     
             
+            print os.path.abspath(DB_FILE_PATH)
+            
             self.MAIN_DB = body
         return self.getManDB()
 
     def save(self):
         try:
-            
             dump = deepcopy(self.MAIN_DB)
+            
             for item in dump:
                 item['last_update'] = None
                 

@@ -67,7 +67,7 @@ class ServerWindow(QDialog):
             conflict_server = self.mainWindow.server_model.getServByAddress(str(self.ui.txt_url.text()))
             if conflict_server:
             
-                QMessageBox(QMessageBox.Warning, 'Warning', 'Record for address %s already exist!!!' % str(self.ui.txt_url.text()), QtGui.QMessageBox.Ok).exec_()
+                QMessageBox(QMessageBox.Warning, 'Warning', 'Record for address %s already exist.' % str(self.ui.txt_url.text()), QtGui.QMessageBox.Ok).exec_()
             
             else: 
                 servObj = {}

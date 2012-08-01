@@ -169,7 +169,7 @@ class ReplicationWindow(QDialog):
             new_relication = {'source': source, 'target': target, 'proxy': proxy, 'filter': filter, 'query': query}
 
             if new_relication in self.server_obj.get('replications'):
-                QMessageBox(QMessageBox.Warning, 'Warning', 'Record for this replication already exist!!!', QtGui.QMessageBox.Ok).exec_()
+                QMessageBox(QMessageBox.Warning, 'Warning', 'Record for this replication already exist.', QtGui.QMessageBox.Ok).exec_()
             else:
                 self.mainWindow.dump_replication_record(self.server_obj, new_relication)
                 self.close()
