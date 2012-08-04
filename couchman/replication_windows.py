@@ -1,11 +1,9 @@
-from UI.UI_New_Task import *
+import logging, urlparse, json
 from PySide.QtCore import *
 from PySide.QtGui import *
-from config import *
 from couchdbcurl import Server 
-import logging
-import urlparse
-import json
+from UI.UI_New_Task import *
+from config import *
 
 class ReplicationWindow(QDialog):
     def __init__(self,mainWindow,server_obj, replication_record):
@@ -40,7 +38,6 @@ class ReplicationWindow(QDialog):
         
         if cur_type == 0:
             txt_lst = replication_record.get('task').split(' ')
-           
             task_source = txt_lst[1]
             task_target = txt_lst[3]
             

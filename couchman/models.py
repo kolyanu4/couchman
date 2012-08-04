@@ -121,7 +121,7 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
         self.server_list = serv_obj['replications']
 
         self.server_obj = serv_obj
-        self.headers = ("Type", "Task", "Status", "Pid", "Info")
+        self.headers = ("Type", "Task", "Status","Started on", "Last update on", "Pid", "Info")
         self.active_brush = QtGui.QBrush()
         self.active_brush.setColor(QtGui.QColor(0,200,0))
         
@@ -147,20 +147,38 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
                 if self.tasks_rendered[index.row()].get('record_type') != 2:
                     return self.tasks_rendered[index.row()].get('type')
                 else:
-                    return "Replication"
+                    return "replication"
             if index.column() == 1:
-                return self.tasks_rendered[index.row()].get('task')
+                if 'target' and 'source' in self.tasks_rendered[index.row()]:
+                    return '%s -> %s' % (self.tasks_rendered[index.row()].get('source'), self.tasks_rendered[index.row()].get('target'))
+                else:
+                    return self.tasks_rendered[index.row()].get('task')
             if index.column() == 2:
                 if self.tasks_rendered[index.row()].get('record_type') != 2:
-                    return self.tasks_rendered[index.row()].get('status')
+                    if 'progress' in self.tasks_rendered[index.row()]:
+                        return "%s%s" % (self.tasks_rendered[index.row()].get('progress'), '%')
+                    else:
+                        return self.tasks_rendered[index.row()].get('status')
                 else:
                     return ""
             if index.column() == 3:
+                if 'started_on' in self.tasks_rendered[index.row()]:
+                    started = datetime.fromtimestamp(self.tasks_rendered[index.row()].get('started_on'))
+                    return '%s' % (started)
+                else:
+                    ' '
+            if index.column() == 4:
+                if 'updated_on' in self.tasks_rendered[index.row()]:
+                    updated =datetime.fromtimestamp(self.tasks_rendered[index.row()].get('updated_on'))
+                    return '%s' % (updated)
+                else:
+                    ' '
+            if index.column() == 5:
                 if self.tasks_rendered[index.row()].get('record_type') != 2:
                     return self.tasks_rendered[index.row()].get('pid')
                 else:
                     return ""
-            if index.column() == 4:
+            if index.column() == 6:
                  if self.tasks_rendered[index.row()].get('record_type') == 2:
                      return "proxy: %s, filter: %s, query_params: %s" % (self.tasks_rendered[index.row()].get('proxy', ""),
                                                                          self.tasks_rendered[index.row()].get('filter', ""),
