@@ -245,7 +245,7 @@ class ViewWorker(multiprocessing.Process):
         elif self.command == "ping":
             try:
                 doc_name = self.db['_design/' + self.params["view_name"]].views.keys()[0]
-                self.db.view(self.params["view_name"] + '/' + doc_name, limit = 0).rows
+                self.db.view(self.params["view_name"] + '/' + doc_name, limit=0, stale='update_after').rows
                 self.send_result("")
             except:
                 self.send_error(sys.exc_info()[1])
