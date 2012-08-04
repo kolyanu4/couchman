@@ -151,6 +151,8 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
             if index.column() == 1:
                 if 'target' and 'source' in self.tasks_rendered[index.row()]:
                     return '%s -> %s' % (self.tasks_rendered[index.row()].get('source'), self.tasks_rendered[index.row()].get('target'))
+                elif 'design_document' in self.tasks_rendered[index.row()]:
+                    return '%s, %s' % (self.tasks_rendered[index.row()].get('database'), self.tasks_rendered[index.row()].get('design_document'))
                 else:
                     return self.tasks_rendered[index.row()].get('task')
             if index.column() == 2:
