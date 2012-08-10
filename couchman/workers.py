@@ -249,3 +249,53 @@ class ViewWorker(multiprocessing.Process):
                 self.send_result("")
             except:
                 self.send_error(sys.exc_info()[1])
+
+
+
+class DbWorker(multiprocessing.Process):
+    
+    def __init__(self, pipe, command, server, serv_index, selected = None):
+        multiprocessing.Process.__init__(self)
+        self.pipe = pipe
+        self.command = command
+        self.server_url = server
+        self.selected_now = selected
+        self.serv_index = serv_index
+        try:
+            self.db_server = Server(str(server))
+        except:
+            self.db_server = None
+        self.cur_server_dbs = {}
+        self.db_names = []
+        
+    
+    
+    def run(self):
+        if self.command == "refresh" and self.db_server:
+            for db in self.db_server:
+                if self.cur_server_dbs.get(db) is None:
+                    try:
+                        info = self.db_server[db].info()
+                        self.cur_server_dbs[db] = {"connect":True,"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
+                    except:
+                        self.cur_server_dbs[db] = {"connect":False,"last_refresh":"Unknown", "name":db, "size":"-", "docs":"-"}
+                else:
+                    try:
+                        info = self.db_server[db].info()
+                        self.cur_server_dbs[db]["connect"] = True
+                        self.cur_server_dbs[db]["size"] = info['disk_size']
+                        self.cur_server_dbs[db]["docs"] = info['doc_count']
+                    except:
+                        self.cur_server_dbs[db]["connect"] = False
+                        self.cur_server_dbs[db]["size"] = "-"
+                        self.cur_server_dbs[db]["docs"] = "-"
+                self.db_names.append(db)
+                self.db_names.sort()
+        self.pipe.send({'command':'end_refresh',
+                        'db_names':self.db_names,
+                        'cur_server_dbs':self.cur_server_dbs,
+                        'server_url': self.server_url,
+                        'selected_now':self.selected_now,
+                        'server': self.db_server,
+                        'index': self.serv_index,
+                        })

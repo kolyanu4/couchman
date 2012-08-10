@@ -6,7 +6,7 @@ from couchdbcurl import Server
 from UI.UI_DocManager import *
 from models import DBListModel, DBViewModel
 from config import *
-from workers import ViewWorker
+from workers import ViewWorker, DbWorker
 
 
 class DBManager(QWidget):
@@ -25,12 +25,21 @@ class DBManager(QWidget):
         self.server_list = server_list
         self.server_view_list = server_view_list
         self.view_workers_list = []
-
+        self.db_workers_list = []
+        self.serv_db_list = []
+        self.index = -1
+        self.ui.tlw_db_list.setEnabled(False)
+        
         i = 0
         curr = None
         for serv in self.server_list:
             self.ui.cmb_servers.addItem("[%s] %s" % (serv['group'], serv['name'], ), userData=serv)
             self.ui.cmb_servers.setItemIcon(i, QtGui.QIcon(ROOT_DIR+'/media/workgroup.png'))
+            
+            ### Start db_worker for every server ###
+            self.start_db_workers('refresh', serv['url'], i, selected_now)
+            ### end start db_worker for every server ###
+            
             if selected_now and selected_now['url'] == serv['url']:
                 self.ui.cmb_servers.setCurrentIndex(i)
                 cur = i
@@ -58,87 +67,72 @@ class DBManager(QWidget):
         self.ui.btn_compact.setIcon(QtGui.QIcon(ROOT_DIR+'/media/compact.png'))
         self.ui.btn_ping.setIcon(QtGui.QIcon(ROOT_DIR+'/media/ping.png'))
         
-        if selected_now:    
-            self.on_server_changed(cur)
-            
-            
         #worker's main timer
         self.timer = QTimer()
         self.connect(self.timer, QtCore.SIGNAL("timeout()"), self.workerTimer_update) 
         self.timer.start(300)
+        #db_worker's timer
+        self.db_timer = QTimer()
+        self.connect(self.db_timer, QtCore.SIGNAL("timeout()"), self.db_timer_update) 
+        self.db_timer.start(5000)
             
+    
+    
+    def start_db_workers(self, command, serv_url, index, selected_now):
+        if command == 'refresh':
+            self_db_pipe, remote_db_pipe = multiprocessing.Pipe(duplex = True)
+            db_connector = DbWorker(remote_db_pipe, command, serv_url, index, selected_now)
+            self.db_workers_list.append({'pipe':self_db_pipe,'thread':db_connector})
+            db_connector.start()
+        
+    
+    def db_timer_update(self):
+        for worker_obj in self.db_workers_list:
+            worker = worker_obj['pipe']
+            while worker.poll():
+                data = worker.recv()
+                self.serv_db_list.append({ 'server':data['server_url'], "db_names":data['db_names'], 'cur_server_dbs':data['cur_server_dbs'] })
+                if "command" in data and data["command"] == "end_refresh":
+                    if data["selected_now"]["url"] == data["server_url"]:
+                        self.cur_server_dbs = data["cur_server_dbs"]
+                        if self.index == -1:
+                            self.on_server_changed(data["index"])
+                        self.ui.tlw_db_list.setEnabled(True)
+                        self.ui.btn_clean_views.setEnabled(False)
+                        self.ui.btn_compact.setEnabled(False)
+                        self.ui.btn_compact_db.setEnabled(False)
+                        self.ui.btn_compact_views.setEnabled(False)
+                        self.ui.btn_ping.setEnabled(False)
+                if self.index != -1:
+                    self.on_server_changed(self.index)
+                    
+    
     def on_server_changed(self, index):
         """Slot for signal "currentIndexChanged" of servers combobox
         
             Clear old data and create and populate database list of selected server
         """
+        self.index = index
         self.server = self.server_list[index]
         self.setWindowTitle("%s - %s"%(self.win_name, self.server['name']))
-        if self.server_view_list.get(self.server['url']) is None:
-            self.server_view_list[self.server['url']] = {}
-            
-        ############### SEND TO THREAD #################
-        self.cur_server_dbs = self.server_view_list[self.server['url']]
         try:
             self.selected_server = Server(str(self.server['url']))
         except:
             self.selected_server = None
-        
-        self.disabling_refresh()
-        
-        if self.selected_server:
-            db_names = []       
-            for db in self.selected_server:
-                if self.cur_server_dbs.get(db) is None:
-                    try:
-                        info = self.selected_server[db].info()
-                        self.cur_server_dbs[db] = {"connect":True,"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
-                    except:
-                        self.cur_server_dbs[db] = {"connect":False,"last_refresh":"Unknown", "name":db, "size":"-", "docs":"-"}
-                else:
-                    try:
-                        info = self.selected_server[db].info()
-                        self.cur_server_dbs[db]["connect"] = True
-                        self.cur_server_dbs[db]["size"] = info['disk_size']
-                        self.cur_server_dbs[db]["docs"] = info['doc_count']
-                    except:
-                        self.cur_server_dbs[db]["connect"] = False
-                        self.cur_server_dbs[db]["size"] = "-"
-                        self.cur_server_dbs[db]["docs"] = "-"
-                db_names.append(db)
-            db_names.sort()
-            
-            self.db_model = DBListModel(self.cur_server_dbs, db_names)
-            self.ui.tlw_db_list.setModel(self.db_model)
-            
-            if len(db_names):
-                self.ui.btn_clean_views.setEnabled(False)
-                self.ui.btn_compact.setEnabled(False)
-                self.ui.btn_compact_db.setEnabled(False)
-                self.ui.btn_compact_views.setEnabled(False)
-                self.ui.btn_ping.setEnabled(False)
-        
-        else:
-            self.db_model = DBListModel([])
-            self.ui.tlw_db_list.setModel(self.db_model)          
-            
-        self.view_model = DBViewModel([])
-        self.ui.tlw_view_list.setModel(self.view_model)
-        
-        self.ui.btn_clean_views.setEnabled(False)
-        self.ui.btn_compact.setEnabled(False)
-        self.ui.btn_compact_db.setEnabled(False)
-        self.ui.btn_compact_views.setEnabled(False)
-        self.ui.btn_ping.setEnabled(False)
-        
-        for i in range(self.db_model.columnCount()):
-            self.ui.tlw_db_list.resizeColumnToContents(i) 
-        ################### END SEND TO THREAD #################
+        for server in self.serv_db_list:
+            if server['server'] == self.server['url']:
+                self.cur_server_dbs = server["cur_server_dbs"]
+                self.db_model = DBListModel(server['cur_server_dbs'], server['db_names'])        
+                self.ui.tlw_db_list.setModel(self.db_model)
+                self.db_model.update_data()
+                self.view_model = DBViewModel([])
+                self.ui.tlw_view_list.setModel(self.view_model)
+                for i in range(self.db_model.columnCount()):
+                    self.ui.tlw_db_list.resizeColumnToContents(i)
         
     def db_selection_changed(self, index):
         """Slot for signal "list_currentChanged" of database tree view list
             Clear old view list and populate it with new data from selected database
-        
         """
         self.selected_db = self.selected_server[self.db_model.db_list[index.row()]]
         win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)

@@ -215,7 +215,7 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
     
     def finde(self,source,target):
         for rec in self.tasks_rendered:
-            if rec.get('type') == 'Replication':
+            if rec.get('type') == 'replication':
                 txt_lst = rec.get('task').split(' ')
                 if rec.get('record_type') != 2:
                     task_source = txt_lst[1]
