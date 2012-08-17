@@ -115,13 +115,17 @@ class DBManager(QWidget):
         self.index = index
         self.server = self.server_list[index]
         self.setWindowTitle("%s - %s"%(self.win_name, self.server['name']))
+        if self.server_view_list.get(self.server['url']) is None:
+            self.server_view_list[self.server['url']] = {}
+        
         try:
             self.selected_server = Server(str(self.server['url']))
         except:
             self.selected_server = None
         for server in self.serv_db_list:
             if server['server'] == self.server['url']:
-                self.cur_server_dbs = server["cur_server_dbs"]
+                self.server_view_list[self.server['url']] = server["cur_server_dbs"]
+                self.cur_server_dbs = self.server_view_list[self.server['url']]
                 self.db_model = DBListModel(server['cur_server_dbs'], server['db_names'])        
                 self.ui.tlw_db_list.setModel(self.db_model)
                 self.db_model.update_data()
@@ -212,7 +216,7 @@ class DBManager(QWidget):
         tlw_db_list_sel_model = self.ui.tlw_db_list.selectionModel()
         i = 0
         while i < self.ui.tlw_db_list.model().rowCount():
-            if self.ui.tlw_db_list.model().index(i,0).data() == self.selected_db.name:
+            if self.selected_db.name and self.ui.tlw_db_list.model().index(i,0).data() == self.selected_db.name:
                 j = 0
                 while j < self.ui.tlw_db_list.model().columnCount():
                     tlw_db_list_sel_model.select(self.ui.tlw_db_list.model().index(i,j),QItemSelectionModel.Select)
