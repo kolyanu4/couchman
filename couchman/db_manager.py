@@ -189,7 +189,6 @@ class DBManager(QWidget):
             Create worker for each view of selected database and send signal for update information about it
         """
         ############### SEND TO THREAD #################
-        print self.server['url'], self.index, self.selected_server, self.selected_db.name
         db_names = []       
         for db in self.selected_server:
             if self.cur_server_dbs.get(db) is None:
