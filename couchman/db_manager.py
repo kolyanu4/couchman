@@ -31,7 +31,7 @@ class DBManager(QWidget):
         self.ui.tlw_db_list.setEnabled(False)
         self.ui.tlw_view_list.setEnabled(False)
         self.disabling_refresh()
-        self.setCursor(QCursor(Qt.WaitCursor))
+        self.setCursor(QCursor(Qt.BusyCursor))
         
         i = 0
         curr = None
@@ -202,7 +202,7 @@ class DBManager(QWidget):
         """Slot for signal "list_currentChanged" of database tree view list
             Clear old view list and populate it with new data from selected database
         """
-        self.setCursor(QCursor(Qt.WaitCursor))
+        self.setCursor(QCursor(Qt.BusyCursor))
         self.selected_db = self.selected_server[self.db_model.db_list[index.row()]]
         win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)
         self.setWindowTitle(win_name)
@@ -225,7 +225,7 @@ class DBManager(QWidget):
         """
         for row in self.view_model.view_list:
             row["refreshing"] = "now"
-        self.setCursor(QCursor(Qt.WaitCursor))
+        self.setCursor(QCursor(Qt.BusyCursor))
         self.start_db_workers('refresh_all', self.server['url'], self.index, self.selected_server)
         self.ui.tlw_view_list.setEnabled(False)
         self.ui.tlw_db_list.setEnabled(False)
