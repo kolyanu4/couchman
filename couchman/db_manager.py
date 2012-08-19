@@ -29,6 +29,7 @@ class DBManager(QWidget):
         self.serv_db_list = []
         self.index = -1
         self.ui.tlw_db_list.setEnabled(False)
+        self.ui.tlw_view_list.setEnabled(False)
         
         i = 0
         curr = None
@@ -84,6 +85,11 @@ class DBManager(QWidget):
             db_connector = DbWorker(remote_db_pipe, command, serv_url, index, selected_now)
             self.db_workers_list.append({'pipe':self_db_pipe,'thread':db_connector})
             db_connector.start()
+        if command == 'db_change':
+            self_db_pipe, remote_db_pipe = multiprocessing.Pipe(duplex = True)
+            db_connector = DbWorker(remote_db_pipe, command, serv_url, index, selected_now, self.cur_server_dbs)
+            self.db_workers_list.append({'pipe':self_db_pipe,'thread':db_connector})
+            db_connector.start()
         
     
     def db_timer_update(self):
@@ -91,21 +97,43 @@ class DBManager(QWidget):
             worker = worker_obj['pipe']
             while worker.poll():
                 data = worker.recv()
-                self.serv_db_list.append({ 'server':data['server_url'], "db_names":data['db_names'], 'cur_server_dbs':data['cur_server_dbs'] })
-                if "command" in data and data["command"] == "end_refresh":
-                    if data["selected_now"]["url"] == data["server_url"]:
-                        self.cur_server_dbs = data["cur_server_dbs"]
-                        if self.index == -1:
-                            self.on_server_changed(data["index"])
-                        self.ui.tlw_db_list.setEnabled(True)
-                        self.ui.btn_clean_views.setEnabled(False)
-                        self.ui.btn_compact.setEnabled(False)
-                        self.ui.btn_compact_db.setEnabled(False)
-                        self.ui.btn_compact_views.setEnabled(False)
-                        self.ui.btn_ping.setEnabled(False)
-                if self.index != -1:
-                    self.on_server_changed(self.index)
-                    
+                if "error" in data:
+                    QMessageBox(QMessageBox.Critical, 'Error', 
+                    '''Error while work on command "%s"
+                    Server url: "%s"
+                    Error: %s''' % (data["command"], data['url'], data['error']), QtGui.QMessageBox.Ok).exec_()   
+                elif "command" in data and data["command"] == "end_db_change":
+                    view_list = data['view_list']
+                    self.cur_server_dbs[data['selected_now'].name] = data['cur_server_dbs'][data['selected_now'].name]
+                    self.ui.btn_refresh_all.setEnabled(True)
+                    if self.index == data['index']:	
+						if self.cur_server_dbs[self.selected_db.name]["last_refresh"] == "Unknown":
+							self.ui.lbl_last_update.setText("Unknown")
+						else:
+							self.ui.lbl_last_update.setText(self.cur_server_dbs[self.selected_db.name]["last_refresh"].strftime(DATETIME_FMT))
+						self.view_model = DBViewModel(view_list)
+						self.ui.tlw_view_list.setModel(self.view_model)
+						self.ui.tlw_view_list.setEnabled(True)
+						self.ui.btn_clean_views.setEnabled(True)
+						self.ui.btn_compact_db.setEnabled(True)
+						self.ui.btn_compact_views.setEnabled(True)
+                    for i in range(self.view_model.columnCount()):
+                        self.ui.tlw_view_list.resizeColumnToContents(i) 
+                elif 'server_url' and 'db_names' and 'cur_server_dbs' in data:
+                    self.serv_db_list.append({ 'server':data['server_url'], "db_names":data['db_names'], 'cur_server_dbs':data['cur_server_dbs'] })
+                    if "command" in data and data["command"] == "end_refresh":
+                        if data["selected_now"]["url"] == data["server_url"]:
+                            self.cur_server_dbs = data["cur_server_dbs"]
+                            if self.index == -1:
+                                self.on_server_changed(data["index"])
+                            self.ui.tlw_db_list.setEnabled(True)
+                            self.ui.btn_clean_views.setEnabled(False)
+                            self.ui.btn_compact.setEnabled(False)
+                            self.ui.btn_compact_db.setEnabled(False)
+                            self.ui.btn_compact_views.setEnabled(False)
+                            self.ui.btn_ping.setEnabled(False)
+                    if self.index != -1:
+                        self.on_server_changed(self.index)                    
     
     def on_server_changed(self, index):
         """Slot for signal "currentIndexChanged" of servers combobox
@@ -141,37 +169,10 @@ class DBManager(QWidget):
         self.selected_db = self.selected_server[self.db_model.db_list[index.row()]]
         win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)
         self.setWindowTitle(win_name)
+        self.ui.tlw_view_list.setEnabled(False)
+        self.start_db_workers('db_change', self.server['url'], self.index, self.selected_db)
         
-        view_list = []
-        try:
-            row_list = self.selected_db.view('_all_docs', startkey = "_design/", endkey = "_design0").rows
-            for row in row_list:
-                name = row.key[8:]
-                if self.cur_server_dbs[self.selected_db.name].get(row.id) is None:
-                    self.cur_server_dbs[self.selected_db.name][row.id] = {"name":name, "revision":row.value['rev'], "id": row.id}
-                view_list.append(self.cur_server_dbs[self.selected_db.name][row.id])
-        except: 
-            print sys.exc_info()[1]
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Critical)
-            msgBox.setText("%s" % sys.exc_info()[1])
-            msgBox.exec_()
-            logging.debug('DB Manager: no database found on db selection changed or you dont have permisions')
         
-        self.ui.btn_refresh_all.setEnabled(True)
-        if self.cur_server_dbs[self.selected_db.name]["last_refresh"] == "Unknown":
-            self.ui.lbl_last_update.setText("Unknown")
-        else:
-            self.ui.lbl_last_update.setText(self.cur_server_dbs[self.selected_db.name]["last_refresh"].strftime(DATETIME_FMT))
-        self.view_model = DBViewModel(view_list)
-        self.ui.tlw_view_list.setModel(self.view_model)
-        self.ui.btn_clean_views.setEnabled(True)
-        self.ui.btn_compact_db.setEnabled(True)
-        self.ui.btn_compact_views.setEnabled(True)
-        for i in range(self.view_model.columnCount()):
-            self.ui.tlw_view_list.resizeColumnToContents(i)        
-            
-            
     def view_selection_changed(self):
         """Slot for signal "list_currentChanged" of view tree view list
    
@@ -188,6 +189,7 @@ class DBManager(QWidget):
             Create worker for each view of selected database and send signal for update information about it
         """
         ############### SEND TO THREAD #################
+        print self.server['url'], self.index, self.selected_server, self.selected_db.name
         db_names = []       
         for db in self.selected_server:
             if self.cur_server_dbs.get(db) is None:

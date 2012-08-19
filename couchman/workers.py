@@ -254,7 +254,7 @@ class ViewWorker(multiprocessing.Process):
 
 class DbWorker(multiprocessing.Process):
     
-    def __init__(self, pipe, command, server, serv_index, selected = None):
+    def __init__(self, pipe, command, server, serv_index, selected = None, cur_server_dbs = None):
         multiprocessing.Process.__init__(self)
         self.pipe = pipe
         self.command = command
@@ -263,15 +263,27 @@ class DbWorker(multiprocessing.Process):
         self.serv_index = serv_index
         try:
             self.db_server = Server(str(server))
+            self.error = None
         except:
             self.db_server = None
-        self.cur_server_dbs = {}
+            self.error = sys.exc_info()[1]
+        if cur_server_dbs:
+            self.cur_server_dbs = cur_server_dbs
+        else:
+            self.cur_server_dbs = {}
         self.db_names = []
         
     
+    def send_error(self, error):
+        self.pipe.send({"command":self.command,
+                       "url": self.db_server,
+                       "error": error,
+                       })
     
     def run(self):
-        if self.command == "refresh" and self.db_server:
+        if self.error:
+            self.send_error(self.error)
+        elif self.command == "refresh" and self.db_server:
             for db in self.db_server:
                 if self.cur_server_dbs.get(db) is None:
                     try:
@@ -291,11 +303,30 @@ class DbWorker(multiprocessing.Process):
                         self.cur_server_dbs[db]["docs"] = "-"
                 self.db_names.append(db)
                 self.db_names.sort()
-        self.pipe.send({'command':'end_refresh',
-                        'db_names':self.db_names,
-                        'cur_server_dbs':self.cur_server_dbs,
-                        'server_url': self.server_url,
-                        'selected_now':self.selected_now,
-                        'server': self.db_server,
-                        'index': self.serv_index,
-                        })
+            self.pipe.send({'command':'end_refresh',
+                            'db_names':self.db_names,
+                            'cur_server_dbs':self.cur_server_dbs,
+                            'server_url': self.server_url,
+                            'selected_now':self.selected_now,
+                            'server': self.db_server,
+                            'index': self.serv_index,
+                            })
+        elif self.command == "db_change" and self.selected_now:
+            view_list = []
+            try:
+                row_list = self.selected_now.view('_all_docs', startkey = "_design/", endkey = "_design0").rows
+                for row in row_list:
+                    name = row.key[8:]
+                    if self.cur_server_dbs[self.selected_now.name].get(row.id) is None:
+                        self.cur_server_dbs[self.selected_now.name][row.id] = {"name":name, "revision":row.value['rev'], "id": row.id}
+                    view_list.append(self.cur_server_dbs[self.selected_now.name][row.id])
+                self.pipe.send({'command':'end_db_change',
+                                'view_list':view_list,
+                                'selected_now':self.selected_now,
+                                'cur_server_dbs':self.cur_server_dbs,
+                                'index':self.serv_index,
+                                })
+            except: 
+                print sys.exc_info()[0]
+                self.send_error(sys.exc_info()[0])
+                logging.debug('DB Manager: no database found on db selection changed or you dont have permisions')
