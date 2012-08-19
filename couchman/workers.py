@@ -283,7 +283,7 @@ class DbWorker(multiprocessing.Process):
     def run(self):
         if self.error:
             self.send_error(self.error)
-        elif self.command == "refresh" and self.db_server:
+        elif self.command == "refresh" and self.db_server or self.command == "refresh_all":
             for db in self.db_server:
                 if self.cur_server_dbs.get(db) is None:
                     try:
@@ -303,7 +303,7 @@ class DbWorker(multiprocessing.Process):
                         self.cur_server_dbs[db]["docs"] = "-"
                 self.db_names.append(db)
                 self.db_names.sort()
-            self.pipe.send({'command':'end_refresh',
+            self.pipe.send({'command':'end_%s' % (self.command),
                             'db_names':self.db_names,
                             'cur_server_dbs':self.cur_server_dbs,
                             'server_url': self.server_url,
@@ -311,7 +311,7 @@ class DbWorker(multiprocessing.Process):
                             'server': self.db_server,
                             'index': self.serv_index,
                             })
-        elif self.command == "db_change" and self.selected_now:
+        elif self.command == "db_change":
             view_list = []
             try:
                 row_list = self.selected_now.view('_all_docs', startkey = "_design/", endkey = "_design0").rows
@@ -327,6 +327,6 @@ class DbWorker(multiprocessing.Process):
                                 'index':self.serv_index,
                                 })
             except: 
-                print sys.exc_info()[0]
-                self.send_error(sys.exc_info()[0])
+                print sys.exc_info()[1]
+                self.send_error(sys.exc_info()[1])
                 logging.debug('DB Manager: no database found on db selection changed or you dont have permisions')

@@ -30,6 +30,7 @@ class DBManager(QWidget):
         self.index = -1
         self.ui.tlw_db_list.setEnabled(False)
         self.ui.tlw_view_list.setEnabled(False)
+        self.disabling_refresh()
         
         i = 0
         curr = None
@@ -80,7 +81,7 @@ class DBManager(QWidget):
     
     
     def start_db_workers(self, command, serv_url, index, selected_now):
-        if command == 'refresh':
+        if command == 'refresh' or command == 'refresh_all':
             self_db_pipe, remote_db_pipe = multiprocessing.Pipe(duplex = True)
             db_connector = DbWorker(remote_db_pipe, command, serv_url, index, selected_now)
             self.db_workers_list.append({'pipe':self_db_pipe,'thread':db_connector})
@@ -121,7 +122,7 @@ class DBManager(QWidget):
                         self.ui.tlw_view_list.resizeColumnToContents(i) 
                 elif 'server_url' and 'db_names' and 'cur_server_dbs' in data:
                     self.serv_db_list.append({ 'server':data['server_url'], "db_names":data['db_names'], 'cur_server_dbs':data['cur_server_dbs'] })
-                    if "command" in data and data["command"] == "end_refresh":
+                    if "command" in data and data["command"] == "end_refresh": #or data["command"] == "end_refresh_all":
                         if data["selected_now"]["url"] == data["server_url"]:
                             self.cur_server_dbs = data["cur_server_dbs"]
                             if self.index == -1:
@@ -132,8 +133,42 @@ class DBManager(QWidget):
                             self.ui.btn_compact_db.setEnabled(False)
                             self.ui.btn_compact_views.setEnabled(False)
                             self.ui.btn_ping.setEnabled(False)
-                    if self.index != -1:
-                        self.on_server_changed(self.index)                    
+                            self.ui.btn_refresh_all.setEnabled(True)
+                    if self.index == data['index'] and data["command"] == "end_refresh_all":
+                        self.db_model = DBListModel(data['cur_server_dbs'], data['db_names'])        
+                        self.ui.tlw_db_list.setModel(self.db_model)
+                        self.ui.tlw_db_list.setEnabled(True)
+                        tlw_db_list_sel_model = self.ui.tlw_db_list.selectionModel()
+                        i = 0
+                        while i < self.ui.tlw_db_list.model().rowCount():
+                            if self.selected_db.name and self.ui.tlw_db_list.model().index(i,0).data() == self.selected_db.name:
+                                j = 0
+                                while j < self.ui.tlw_db_list.model().columnCount():
+                                    tlw_db_list_sel_model.select(self.ui.tlw_db_list.model().index(i,j),QItemSelectionModel.Select)
+                                    j += 1
+                            i += 1
+                        try:
+                            cur_timestamp = datetime.now()
+                            self.cur_server_dbs[self.selected_db.name]['last_refresh'] = cur_timestamp
+        
+                            info = self.selected_server[self.selected_db.name].info()
+                            self.cur_server_dbs[self.selected_db.name]["size"] = info['disk_size']
+                            self.cur_server_dbs[self.selected_db.name]["docs"] = info['doc_count']
+        
+                            self.ui.lbl_last_update.setText(cur_timestamp.strftime(DATETIME_FMT))
+                            for row in self.view_model.view_list:
+                                self.start_view_worker("get_info", {"row_id": row['id']})
+                                row["refreshing"] = "now"
+                            self.view_model.update_data()
+                            self.db_model.update_data()
+                        except:
+                            logging.debug('DB Manager: no database found on refresh or you dont have permisions')
+                            self.view_model.view_list = []
+                            self.view_model.update_data()
+                        self.ui.tlw_view_list.setEnabled(True)
+                    if self.index != -1 and self.index != data['index']:
+                        self.on_server_changed(self.index)
+                        
     
     def on_server_changed(self, index):
         """Slot for signal "currentIndexChanged" of servers combobox
@@ -172,7 +207,6 @@ class DBManager(QWidget):
         self.ui.tlw_view_list.setEnabled(False)
         self.start_db_workers('db_change', self.server['url'], self.index, self.selected_db)
         
-        
     def view_selection_changed(self):
         """Slot for signal "list_currentChanged" of view tree view list
    
@@ -182,67 +216,16 @@ class DBManager(QWidget):
         self.ui.btn_compact.setEnabled(True)
         
         
-    
     def btn_refresh_all_react(self):
         """Slot for signal "clicked()" of "Refresh all" button
         
             Create worker for each view of selected database and send signal for update information about it
         """
-        ############### SEND TO THREAD #################
-        db_names = []       
-        for db in self.selected_server:
-            if self.cur_server_dbs.get(db) is None:
-                try:
-                    info = self.selected_server[db].info()
-                    self.cur_server_dbs[db] = {"connect":True,"last_refresh":"Unknown", "name":db, "size":info['disk_size'], "docs":info['doc_count']}
-                except:
-                    self.cur_server_dbs[db] = {"connect":False,"last_refresh":"Unknown", "name":db, "size":"-", "docs":"-"}
-            else:
-                try:
-                    info = self.selected_server[db].info()
-                    self.cur_server_dbs[db]["connect"] = True
-                    self.cur_server_dbs[db]["size"] = info['disk_size']
-                    self.cur_server_dbs[db]["docs"] = info['doc_count']
-                except:
-                    self.cur_server_dbs[db]["connect"] = False
-                    self.cur_server_dbs[db]["size"] = "-"
-                    self.cur_server_dbs[db]["docs"] = "-"
-            
-            db_names.append(db)
-        db_names.sort()
-        
-        self.db_model = DBListModel(self.cur_server_dbs, db_names)
-        self.ui.tlw_db_list.setModel(self.db_model)
-        
-        tlw_db_list_sel_model = self.ui.tlw_db_list.selectionModel()
-        i = 0
-        while i < self.ui.tlw_db_list.model().rowCount():
-            if self.selected_db.name and self.ui.tlw_db_list.model().index(i,0).data() == self.selected_db.name:
-                j = 0
-                while j < self.ui.tlw_db_list.model().columnCount():
-                    tlw_db_list_sel_model.select(self.ui.tlw_db_list.model().index(i,j),QItemSelectionModel.Select)
-                    j += 1
-            i += 1
-
-        try:
-            cur_timestamp = datetime.now()
-            self.cur_server_dbs[self.selected_db.name]['last_refresh'] = cur_timestamp
-        
-            info = self.selected_server[self.selected_db.name].info()
-            self.cur_server_dbs[self.selected_db.name]["size"] = info['disk_size']
-            self.cur_server_dbs[self.selected_db.name]["docs"] = info['doc_count']
-        
-            self.ui.lbl_last_update.setText(cur_timestamp.strftime(DATETIME_FMT))
-            for row in self.view_model.view_list:
-                self.start_view_worker("get_info", {"row_id": row['id']})
-                row["refreshing"] = "now"
-            self.view_model.update_data()
-            self.db_model.update_data()
-        except:
-            logging.debug('DB Manager: no database found on refresh or you dont have permisions')
-            self.view_model.view_list = []
-            self.view_model.update_data()
-        ################### END SEND TO THREAD #################
+        self.start_db_workers('refresh_all', self.server['url'], self.index, self.selected_server)
+        self.ui.tlw_view_list.setEnabled(False)
+        self.ui.tlw_db_list.setEnabled(False)
+        self.ui.btn_ping.setEnabled(False)
+        self.ui.btn_compact.setEnabled(False)
         
     def btn_ping_react(self):
         """Slot for signal "clicked()" of "Ping" button
