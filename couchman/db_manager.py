@@ -152,15 +152,12 @@ class DBManager(QWidget):
                         try:
                             cur_timestamp = datetime.now()
                             self.cur_server_dbs[self.selected_db.name]['last_refresh'] = cur_timestamp
-        
                             info = self.selected_server[self.selected_db.name].info()
                             self.cur_server_dbs[self.selected_db.name]["size"] = info['disk_size']
                             self.cur_server_dbs[self.selected_db.name]["docs"] = info['doc_count']
-        
                             self.ui.lbl_last_update.setText(cur_timestamp.strftime(DATETIME_FMT))
                             for row in self.view_model.view_list:
                                 self.start_view_worker("get_info", {"row_id": row['id']})
-                                row["refreshing"] = "now"
                             self.view_model.update_data()
                             self.db_model.update_data()
                         except:
@@ -226,6 +223,8 @@ class DBManager(QWidget):
         
             Create worker for each view of selected database and send signal for update information about it
         """
+        for row in self.view_model.view_list:
+            row["refreshing"] = "now"
         self.setCursor(QCursor(Qt.WaitCursor))
         self.start_db_workers('refresh_all', self.server['url'], self.index, self.selected_server)
         self.ui.tlw_view_list.setEnabled(False)
