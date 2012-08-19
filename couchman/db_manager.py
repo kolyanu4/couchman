@@ -31,6 +31,7 @@ class DBManager(QWidget):
         self.ui.tlw_db_list.setEnabled(False)
         self.ui.tlw_view_list.setEnabled(False)
         self.disabling_refresh()
+        self.setCursor(QCursor(Qt.WaitCursor))
         
         i = 0
         curr = None
@@ -119,7 +120,8 @@ class DBManager(QWidget):
 						self.ui.btn_compact_db.setEnabled(True)
 						self.ui.btn_compact_views.setEnabled(True)
                     for i in range(self.view_model.columnCount()):
-                        self.ui.tlw_view_list.resizeColumnToContents(i) 
+                        self.ui.tlw_view_list.resizeColumnToContents(i)
+                    self.unsetCursor() 
                 elif 'server_url' and 'db_names' and 'cur_server_dbs' in data:
                     self.serv_db_list.append({ 'server':data['server_url'], "db_names":data['db_names'], 'cur_server_dbs':data['cur_server_dbs'] })
                     if "command" in data and data["command"] == "end_refresh": #or data["command"] == "end_refresh_all":
@@ -166,6 +168,7 @@ class DBManager(QWidget):
                             self.view_model.view_list = []
                             self.view_model.update_data()
                         self.ui.tlw_view_list.setEnabled(True)
+                        self.unsetCursor()
                     if self.index != -1 and self.index != data['index']:
                         self.on_server_changed(self.index)
                         
@@ -196,11 +199,13 @@ class DBManager(QWidget):
                 self.ui.tlw_view_list.setModel(self.view_model)
                 for i in range(self.db_model.columnCount()):
                     self.ui.tlw_db_list.resizeColumnToContents(i)
+        self.unsetCursor()
         
     def db_selection_changed(self, index):
         """Slot for signal "list_currentChanged" of database tree view list
             Clear old view list and populate it with new data from selected database
         """
+        self.setCursor(QCursor(Qt.WaitCursor))
         self.selected_db = self.selected_server[self.db_model.db_list[index.row()]]
         win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)
         self.setWindowTitle(win_name)
@@ -221,6 +226,7 @@ class DBManager(QWidget):
         
             Create worker for each view of selected database and send signal for update information about it
         """
+        self.setCursor(QCursor(Qt.WaitCursor))
         self.start_db_workers('refresh_all', self.server['url'], self.index, self.selected_server)
         self.ui.tlw_view_list.setEnabled(False)
         self.ui.tlw_db_list.setEnabled(False)
