@@ -31,7 +31,14 @@ class DBManager(QWidget):
         self.ui.tlw_db_list.setEnabled(False)
         self.ui.tlw_view_list.setEnabled(False)
         self.disabling_refresh()
-        self.setCursor(QCursor(Qt.BusyCursor))
+        self.ui.btn_clean_views.setEnabled(False)
+        self.ui.btn_compact.setEnabled(False)
+        self.ui.btn_compact_db.setEnabled(False)
+        self.ui.btn_compact_views.setEnabled(False)
+        self.ui.btn_ping.setEnabled(False)
+        self.setCursor(QCursor(QPixmap(ROOT_DIR+'/media/refresh.png')))
+        
+        #refresh.png
         
         i = 0
         curr = None
@@ -130,11 +137,6 @@ class DBManager(QWidget):
                             if self.index == -1:
                                 self.on_server_changed(data["index"])
                             self.ui.tlw_db_list.setEnabled(True)
-                            self.ui.btn_clean_views.setEnabled(False)
-                            self.ui.btn_compact.setEnabled(False)
-                            self.ui.btn_compact_db.setEnabled(False)
-                            self.ui.btn_compact_views.setEnabled(False)
-                            self.ui.btn_ping.setEnabled(False)
                             self.ui.btn_refresh_all.setEnabled(True)
                     if self.index == data['index'] and data["command"] == "end_refresh_all":
                         self.db_model = DBListModel(data['cur_server_dbs'], data['db_names'])        
@@ -202,7 +204,7 @@ class DBManager(QWidget):
         """Slot for signal "list_currentChanged" of database tree view list
             Clear old view list and populate it with new data from selected database
         """
-        self.setCursor(QCursor(Qt.BusyCursor))
+        self.setCursor(QCursor(QPixmap(ROOT_DIR+'/media/refresh.png')))
         self.selected_db = self.selected_server[self.db_model.db_list[index.row()]]
         win_name = "%s - %s - %s"%(self.win_name, self.server['name'], self.selected_db.name)
         self.setWindowTitle(win_name)
@@ -223,9 +225,14 @@ class DBManager(QWidget):
         
             Create worker for each view of selected database and send signal for update information about it
         """
+        self.ui.btn_clean_views.setEnabled(False)
+        self.ui.btn_compact.setEnabled(False)
+        self.ui.btn_compact_db.setEnabled(False)
+        self.ui.btn_compact_views.setEnabled(False)
+        self.ui.btn_ping.setEnabled(False)
         for row in self.view_model.view_list:
             row["refreshing"] = "now"
-        self.setCursor(QCursor(Qt.BusyCursor))
+        self.setCursor(QCursor(QPixmap(ROOT_DIR+'/media/refresh.png')))
         self.start_db_workers('refresh_all', self.server['url'], self.index, self.selected_server)
         self.ui.tlw_view_list.setEnabled(False)
         self.ui.tlw_db_list.setEnabled(False)
