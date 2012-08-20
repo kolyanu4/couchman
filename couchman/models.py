@@ -121,7 +121,7 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
         self.server_list = serv_obj['replications']
 
         self.server_obj = serv_obj
-        self.headers = ("Type", "Task", "Progress","Started on", "Last update on", "Pid", "Info")
+        self.headers = ("Type", "Object", "Progress","Started on", "Update on", "Pid", "Info")
         self.active_brush = QtGui.QBrush()
         self.active_brush.setColor(QtGui.QColor(0,200,0))
         
