@@ -121,7 +121,7 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
         self.server_list = serv_obj['replications']
 
         self.server_obj = serv_obj
-        self.headers = ("Type", "Task", "Status","Started on", "Last update on", "Pid", "Info")
+        self.headers = ("Type", "Task", "Progress","Started on", "Last update on", "Pid", "Info")
         self.active_brush = QtGui.QBrush()
         self.active_brush.setColor(QtGui.QColor(0,200,0))
         
@@ -149,10 +149,14 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
                 else:
                     return "replication"
             if index.column() == 1:
-                if 'target' and 'source' in self.tasks_rendered[index.row()]:
-                    return '%s -> %s' % (self.tasks_rendered[index.row()].get('source'), self.tasks_rendered[index.row()].get('target'))
-                elif 'design_document' in self.tasks_rendered[index.row()]:
-                    return '%s, %s' % (self.tasks_rendered[index.row()].get('database'), self.tasks_rendered[index.row()].get('design_document'))
+                if self.tasks_rendered[index.row()].get('type') == 'replication':
+                    return '%s -> %s (%s/%s)' % (self.tasks_rendered[index.row()].get('source'), self.tasks_rendered[index.row()].get('target'), self.tasks_rendered[index.row()].get('checkpointed_source_seq'), self.tasks_rendered[index.row()].get('source_seq'))
+                elif self.tasks_rendered[index.row()].get('type') == 'view_compaction':
+                    return '%s@%s' % (self.tasks_rendered[index.row()].get('design_document'), self.tasks_rendered[index.row()].get('database'))
+                elif self.tasks_rendered[index.row()].get('type') == 'indexer':
+                    return '%s@%s (%s/%s)' % (self.tasks_rendered[index.row()].get('design_document'), self.tasks_rendered[index.row()].get('database'), self.tasks_rendered[index.row()].get('changes_done'), self.tasks_rendered[index.row()].get('total_changes'))
+                elif self.tasks_rendered[index.row()].get('type') == 'database_compaction':
+                    return '%s (%s/%s)' % (self.tasks_rendered[index.row()].get('database'), self.tasks_rendered[index.row()].get('changes_done'), self.tasks_rendered[index.row()].get('total_changes'))
                 else:
                     return self.tasks_rendered[index.row()].get('task')
             if index.column() == 2:
@@ -162,34 +166,34 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
                     else:
                         return self.tasks_rendered[index.row()].get('status')
                 else:
-                    return ""
+                    return None
             if index.column() == 3:
                 if 'started_on' in self.tasks_rendered[index.row()]:
                     started = datetime.fromtimestamp(self.tasks_rendered[index.row()].get('started_on'))
                     return '%s' % (started)
                 else:
-                    ' '
+                    return None
             if index.column() == 4:
                 if 'updated_on' in self.tasks_rendered[index.row()]:
                     updated =datetime.fromtimestamp(self.tasks_rendered[index.row()].get('updated_on'))
                     return '%s' % (updated)
                 else:
-                    ' '
+                    return None
             if index.column() == 5:
                 if self.tasks_rendered[index.row()].get('record_type') != 2:
                     return self.tasks_rendered[index.row()].get('pid')
                 else:
-                    return ""
+                    return None
             if index.column() == 6:
                  if self.tasks_rendered[index.row()].get('record_type') == 2:
                      return "proxy: %s, filter: %s, query_params: %s" % (self.tasks_rendered[index.row()].get('proxy', ""),
                                                                          self.tasks_rendered[index.row()].get('filter', ""),
                                                                          self.tasks_rendered[index.row()].get('query', ""))
                  else:
-                     return ""
+                     return None
             
         elif role == QtCore.Qt.ForegroundRole:
-            if self.tasks_rendered[index.row()].get('record_type') == 1:
+            if index.column() == 2 and self.tasks_rendered[index.row()].get('record_type') == 1:
                 return self.active_brush
             elif self.tasks_rendered[index.row()].get('record_type') == 2:
                 return self.nonactive_brush
@@ -200,7 +204,6 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
                 return self.tasks_rendered[index.row()]
             except:
                 return None
-
         return None
     
     
