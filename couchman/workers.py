@@ -6,7 +6,7 @@ from config import DATETIME_FMT
 
 class ServerWorker(multiprocessing.Process):
     
-    def __init__(self,pipe,server):
+    def __init__(self,pipe,server, default):
         multiprocessing.Process.__init__(self)
         self.tries = 0
         self.pipe = pipe
@@ -17,13 +17,13 @@ class ServerWorker(multiprocessing.Process):
         try:
             self.update_period = float(server.get('autoupdate'))
         except:
-            self.update_period = None
+            self.update_period = float(default['autoupdate'])
         
         self.last_update = time()
     
     def update(self):
         #logging.debug("worker: update command for %s" % self.address)
-        if self.server['enabled'] == 'Checked':
+        if self.server['enabled']:
             try:
                 tasks = self.db_server.tasks()
             except:
@@ -80,7 +80,7 @@ class ServerWorker(multiprocessing.Process):
                 
             sleep(0.05)
             
-            if self.update_period and time() > self.last_update + self.update_period and self.server['enabled'] == "Checked":
+            if self.update_period and time() > self.last_update + self.update_period and self.server['enabled']:
                 self.update()
                 
                 

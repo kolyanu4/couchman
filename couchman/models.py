@@ -37,7 +37,7 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
                 return self.servers[index.row()].get('version')
     
         elif role == QtCore.Qt.ForegroundRole:
-            if self.servers[index.row()].get('enabled') == "Checked":
+            if self.servers[index.row()].get('enabled'):
                 return self.enabled_brush
             else:
                 return self.disabled_brush
@@ -54,12 +54,12 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
                 else:
                     dif = INFINITY
                 str_autoupdate = self.servers[index.row()].get('autoupdate')
-                if str_autoupdate == "None":
-                    period = -1.0
-                else:
+                if str_autoupdate:
                     period = float(str_autoupdate)
+                else:
+                    period = -1.0
                     
-                if period < 0 or flag_enabled != 'Checked':
+                if period < 0 or not flag_enabled:
                     return QtGui.QIcon(ROOT_DIR+'/media/circle_blue.png')
                 elif dif > 6 * period:
                     return QtGui.QIcon(ROOT_DIR+'/media/circle_red.png')

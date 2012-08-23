@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
         logging.debug('MainWindow: Create myJson class')
         self.myJson = MyJson()
         logging.debug('MainWindow: Getting data from json file')
+        self.serv_list = []
         self.MAIN_DB = self.myJson.readFromDB()
         
         #exit on Ctrl-Q/Cmd-Q
@@ -37,7 +38,9 @@ class MainWindow(QMainWindow):
         logging.debug("MainWindow: set model for server treeview list")
         self.server_model = ServerTreeModel(self)
         self.ui.tlw_servers.setModel(self.server_model)
-        self.server_model.servers = self.MAIN_DB
+        
+        
+        self.server_model.servers = self.serv_list
         self.ui.tlw_servers.setColumnWidth(0,24)
         self.server_model.reset()
         self.ui.tlw_servers.setSortingEnabled(False)
@@ -60,13 +63,16 @@ class MainWindow(QMainWindow):
         self.server_windows = []
         self.replication_windows = []
         self.dbmanager_windows = []
-
+        
         #start workers for each server and assign task model record
-        for serv in self.MAIN_DB:
+        
+        for serv in self.MAIN_DB['servers']:
             self.start_worker('server', serv)
             tasks_model = TaskTreeModel(serv)
             self.model_list[serv['url']] = tasks_model
+            self.serv_list.append(serv)
             
+        
         logging.debug("MainWindow: connect buttons to Signals ")
         #buttons connectors
         self.ui.btn_addserver.clicked.connect(self.btn_add_server_react)
@@ -107,7 +113,7 @@ class MainWindow(QMainWindow):
         if type == 'server':
             logging.debug("MainWindow: start server worker for %s" % data["url"])
             self_pipe, remote_pipe = multiprocessing.Pipe(duplex = True)
-            connector = ServerWorker(remote_pipe,data)
+            connector = ServerWorker(remote_pipe, data, self.MAIN_DB['defaults'])
             self.server_workers[data['url']] = {'pipe':self_pipe,'thread':connector}
             connector.start()
             self_pipe.send({'command':'update_server'})
@@ -126,7 +132,10 @@ class MainWindow(QMainWindow):
         self.ui.lbl_srv_addres.setText('<a href="%(url)s%(pref)s">%(url)s</a>' % {'url': cur_record['url'], 'pref':"/_utils"})
         self.ui.lbl_srv_group.setText(cur_record['group'])
         self.ui.lbl_srv_name.setText(cur_record['name'])
-        self.ui.lbl_period.setText(str(cur_record['autoupdate']))
+        if cur_record['autoupdate']:
+            self.ui.lbl_period.setText(str(cur_record['autoupdate']))
+        else:
+            self.ui.lbl_period.setText(str('default (%s)' % self.MAIN_DB['defaults']['autoupdate']))
         if cur_record.get('last_update'):
             self.ui.lbl_lastupdate.setText(cur_record.get('last_update').strftime(DATETIME_FMT))
         else:
@@ -280,7 +289,7 @@ class MainWindow(QMainWindow):
         """Slot for Signal"clicked()" of "DB manager" button
         """
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
-        dbmanager_win = DBManager(self.server_view_list,self, self.MAIN_DB,selectedServer)
+        dbmanager_win = DBManager(self.server_view_list,self, self.serv_list,selectedServer)
         dbmanager_win.show()
         self.dbmanager_windows.append(dbmanager_win) 
     
@@ -304,7 +313,7 @@ class MainWindow(QMainWindow):
             for rep in rep_list:
                 if rep['source'] == task_source and rep['target'] == task_target:
                     rep_list.remove(rep)       
-                    self.myJson.save()
+                    self.myJson.save(self.serv_list)
             if len(self.tasks_model.tasks_rendered) < 2:
                 self.empty_rep_list_status()
             pipe = self.server_workers.get(selectedServer.get('url')).get('pipe')
@@ -385,7 +394,7 @@ class MainWindow(QMainWindow):
         logging.debug("MainWindow: replication record adding")
         rep_list = server.get('replications')
         rep_list.append(record)
-        if self.myJson.save():
+        if self.myJson.save(self.serv_list):
             pipe = self.server_workers.get(server.get('url')).get('pipe')
             pipe.send({"command": 'update_server'})
         else:
@@ -396,8 +405,8 @@ class MainWindow(QMainWindow):
         """Dump server record to persisted list
         """
         logging.debug("MainWindow: server record adding")
-        self.MAIN_DB.append(record)
-        if self.myJson.save():
+        self.serv_list.append(record)
+        if self.myJson.save(self.serv_list):
             tasks_model = TaskTreeModel(record)
             self.model_list[record['url']] = tasks_model 
             self.server_model.update_data()
@@ -419,7 +428,7 @@ class MainWindow(QMainWindow):
             del self.model_list[selectedServer['url']]
             
             self.server_model.removeServRecord(selectedServer)
-            self.myJson.save()
+            self.myJson.save(self.serv_list)
             
             if pos == self.server_model.rowCount() and pos > 0:
                 index = self.ui.tlw_servers.model().index(pos-1, 0)

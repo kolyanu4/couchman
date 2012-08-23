@@ -2,7 +2,7 @@ import json, sys, logging
 import os.path
 from copy import deepcopy
 from config import *
-from pprint import pprint
+import pprint
 
 class MyJson():
     def __init__(self):
@@ -19,23 +19,32 @@ class MyJson():
                 self.MAIN_DB = json.load(f)
         else:
             logging.debug('MyJson: file not found... create new one')
-            body = []
+            body = {"defaults": { "autoupdate": 10.0 }, "servers": []}
             
             with open(DB_FILE_PATH, 'w') as f:
-                json.dump(body, f)     
+                json.dump(body, f, indent=4, separators=(', ', ': '))     
             
             print DB_FILE_PATH
             
             self.MAIN_DB = body
         return self.getManDB()
 
-    def save(self):
+    def save(self, DB):
         try:
             dump = deepcopy(self.MAIN_DB)
+            runtime = dump['servers']
+            dump['servers'] = []
+            for serv in DB:
+                replications = serv['replications']
+                server = { "group":serv['group'], 
+                           "name":serv['name'], 
+                           "url":serv['url'], 
+                           "enabled":serv['enabled'], 
+                           "autoupdate":serv['autoupdate'], 
+                           "proxy":serv['proxy'],
+                           "replications":replications}
+                dump['servers'].append(server)
             
-            for item in dump:
-                item['last_update'] = None
-                
             with open(DB_FILE_PATH, 'w') as f:
                     json.dump(dump, f, indent=4, separators=(', ', ': '))
             logging.debug('MyJson: save json complete')

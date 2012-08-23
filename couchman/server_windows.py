@@ -12,7 +12,7 @@ class ServerWindow(QDialog):
         super(ServerWindow, self).__init__()
         self.ui = Ui_AddServerForm()
         self.ui.setupUi(self)
-        if role == 'edit' and serv_data['enabled'] == 'Unchecked':
+        if role == 'edit' and not serv_data['enabled']:
             self.ui.chb_enabled.setChecked(False)
         self.mainWindow = mainWindow
         self.serv_data = serv_data
@@ -47,11 +47,13 @@ class ServerWindow(QDialog):
             
             self.parse_url()
             
-            if self.serv_data['autoupdate'] == 'None':
+            if self.serv_data['autoupdate']:
+                self.ui.group_autoupdate.setChecked(True)
+            else:
                 self.ui.group_autoupdate.setChecked(False)
         
         i=0
-        for item in mainWindow.MAIN_DB:
+        for item in mainWindow.serv_list:
             if self.ui.cmb_group.findText(item['group']) == -1:
                 self.ui.cmb_group.addItems([item['group']])
                 if serv_data and serv_data['url'] == item['url']:
@@ -75,9 +77,9 @@ class ServerWindow(QDialog):
                 servObj["url"] = str(self.ui.txt_url.text())
                 servObj["group"] = str(self.ui.cmb_group.currentText())
                 if self.ui.chb_enabled.isChecked():
-                    servObj["enabled"] = 'Checked'
+                    servObj["enabled"] = True
                 else:
-                    self.serv_data["enabled"] = 'Unchecked'
+                    self.serv_data["enabled"] = False
                 servObj["status"] = False
                 servObj["date"] = datetime.now().strftime(DATE_FORMAT)
                 servObj["proxy"] = str(self.ui.txt_proxy.text())
@@ -85,7 +87,7 @@ class ServerWindow(QDialog):
                 if self.ui.group_autoupdate.isChecked():
                     servObj["autoupdate"] = self.ui.spin_time.value()
                 else:
-                    servObj["autoupdate"] = 'None'
+                    servObj["autoupdate"] = None
                 self.mainWindow.dump_server_record(servObj)
                 self.mainWindow.start_worker('server', servObj)
             
@@ -97,20 +99,19 @@ class ServerWindow(QDialog):
             url = self.serv_data["url"]
             self.serv_data["name"] = str(self.ui.txt_name.text())
             self.serv_data["url"] = str(self.ui.txt_url.text())
-            self.serv_data["status"] = self.serv_data["status"]
             self.serv_data["group"] = str(self.ui.cmb_group.currentText())
             if self.ui.chb_enabled.isChecked():
-                self.serv_data["enabled"] = 'Checked'
+                self.serv_data["enabled"] = True
             else:
-                self.serv_data["enabled"] = 'Unchecked'
+                self.serv_data["enabled"] = False
             self.serv_data["date"] = datetime.now().strftime(DATE_FORMAT)
             self.serv_data["proxy"] = str(self.ui.txt_proxy.text())
             if self.ui.group_autoupdate.isChecked():
                 self.serv_data["autoupdate"] = self.ui.spin_time.value()
             else:
-                self.serv_data["autoupdate"] = 'None'
+                self.serv_data["autoupdate"] = None
             
-            if self.mainWindow.myJson.save():
+            if self.mainWindow.myJson.save(self.mainWindow.serv_list):
                 self.mainWindow.server_workers[self.serv_data["url"]] = self.mainWindow.server_workers[url]
                 obj = self.mainWindow.server_workers[self.serv_data["url"]]
                 pipe = obj['pipe']
