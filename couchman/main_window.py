@@ -152,7 +152,6 @@ class MainWindow(QMainWindow):
             self.ui.btn_addserver.setEnabled(True)
             self.empty_rep_list_status()
             
-  
             if len(self.tasks_model.tasks_rendered) == 0:
                 self.ui.tlw_replications.setEnabled(False)
             else:
@@ -160,17 +159,13 @@ class MainWindow(QMainWindow):
                 
             for i in range(self.tasks_model.columnCount()):
                 self.ui.tlw_replications.resizeColumnToContents(i) 
-               
-            
+                
         else:
             self.ui.lbl_status.setText('Disabled')
             self.tasks_model = self.model_list[cur_record['url']]
             self.ui.tlw_replications.setModel(self.tasks_model)
             self.tasks_model.update_data()
-            self.replicationListEnabled(False)
             self.empty_rep_list_status()
-            
-            
     
     def replication_selection_changed(self, cur_index):
         """Signal slot for replications tree view list current index change
@@ -470,9 +465,8 @@ class MainWindow(QMainWindow):
                     if data["command"] == "update_server":
                         #print "timer: update server status for %s" % data["url"]
                         #print "new task list: %s" % data.get('tasks')
-                        
                         self.update_server_data(data.get("url"), data.get("data"))
-        
+                        
         for rep in self.replication_workers:
             worker = rep.get('pipe')
             while worker and worker.poll():

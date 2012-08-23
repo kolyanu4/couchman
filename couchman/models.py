@@ -121,7 +121,7 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
         self.server_list = serv_obj['replications']
 
         self.server_obj = serv_obj
-        self.headers = ("Type", "Object", "Progress","Started on", "Update on", "Pid", "Info")
+        self.headers = ("Type", "Object", "Progress","Started on", "Updated on", "Pid", "Info")
         self.active_brush = QtGui.QBrush()
         self.active_brush.setColor(QtGui.QColor(0,200,0))
         
@@ -143,6 +143,9 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
         if self.need_rendering:
             self.render()
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
+            if 'error' in self.tasks_rendered and role == QtCore.Qt.DisplayRole and self.tasks_rendered.get('error'): 
+                self.headers = ("Error",)
+                return str(self.tasks_rendered['error'])
             if index.column() == 0:
                 if self.tasks_rendered[index.row()].get('record_type') != 2:
                     return self.tasks_rendered[index.row()].get('type')
@@ -192,7 +195,12 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
                  else:
                      return None
             
+        elif role == QtCore.Qt.DecorationRole:
+            if 'error' in self.tasks_rendered and self.tasks_rendered.get('error'):
+                return QtGui.QIcon(ROOT_DIR+'/media/error.png')
         elif role == QtCore.Qt.ForegroundRole:
+            if 'error' in self.tasks_rendered: 
+                return 
             if index.column() == 2 and self.tasks_rendered[index.row()].get('record_type') == 1:
                 return self.active_brush
             elif self.tasks_rendered[index.row()].get('record_type') == 2:
@@ -200,6 +208,8 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
             else:
                 return QtGui.QBrush()
         elif role == TASK_INFO_ROLE:
+            if 'error' in self.tasks_rendered: 
+                return
             try:
                 return self.tasks_rendered[index.row()]
             except:
@@ -249,6 +259,9 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
     
     def render(self):
         self.tasks_rendered = []
+        if "error" in self.runetime:
+            self.tasks_rendered = self.runetime
+            return
         for task in self.runetime:
             task['record_type'] = 0
             self.tasks_rendered.append(task)

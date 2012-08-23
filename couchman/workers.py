@@ -27,12 +27,12 @@ class ServerWorker(multiprocessing.Process):
             try:
                 tasks = self.db_server.tasks()
             except:
-                tasks = None
+                tasks = { "error":sys.exc_value }
                 
             try:
-                    ver = "ver. %s" % self.db_server.version
-                    status = True
-                    self.tries = 0
+                ver = "ver. %s" % self.db_server.version
+                status = True
+                self.tries = 0
             except:
                 ver = "-"
                 status = False
