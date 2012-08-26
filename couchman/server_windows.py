@@ -26,7 +26,6 @@ class ServerWindow(QDialog):
         self.connect(self.ui.cmb_protocol,QtCore.SIGNAL("activated ( const QString &)"), self.field_changed)
         self.connect(self.ui.grp_login,QtCore.SIGNAL("toggled(bool)"), self.field_changed)
         
-
         self.connect(self.ui.btn_parse,QtCore.SIGNAL("clicked()"), self.parse_url)
         self.connect(self.ui.btn_test,QtCore.SIGNAL("clicked()"), self.test_url)
         
@@ -113,6 +112,9 @@ class ServerWindow(QDialog):
             
             if self.mainWindow.myJson.save(self.mainWindow.serv_list):
                 self.mainWindow.server_workers[self.serv_data["url"]] = self.mainWindow.server_workers[url]
+                self.mainWindow.model_list[self.serv_data["url"]] = self.mainWindow.model_list[url]
+                del self.mainWindow.server_workers[url]
+                del self.mainWindow.model_list[url]
                 obj = self.mainWindow.server_workers[self.serv_data["url"]]
                 pipe = obj['pipe']
                 pipe.send({"command":'update_data', "data":self.serv_data})
@@ -211,5 +213,5 @@ class ServerWindow(QDialog):
             self.mainWindow.server_windows.remove(self)
         except:
             #print "error removing from server windows list"
-             logging.debug('ReplicationWindow: error removing from server windows list')
-        
+            logging.debug('ReplicationWindow: error removing from server windows list')
+
