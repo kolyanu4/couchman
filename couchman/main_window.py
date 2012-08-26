@@ -1,6 +1,4 @@
-import multiprocessing
-import logging
-import sys
+import multiprocessing, logging, sys, urlparse
 from time import sleep
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -129,7 +127,17 @@ class MainWindow(QMainWindow):
         """Signal slot for servers tree view list current index change
         """
         cur_record = self.server_model.data(cur_index, SERVER_INFO_ROLE)
-        self.ui.lbl_srv_addres.setText('<a href="%(url)s%(pref)s">%(url)s</a>' % {'url': cur_record['url'], 'pref':"/_utils"})
+        url = urlparse.urlparse(cur_record['url'])
+        hidden_url = '%(scheme)s://%(username)s:%(password)s@%(hostname)s%(path)s' % {
+            'scheme': url.scheme,
+            'username': url.username,
+            'password': '*' * 8,
+            'hostname': url.hostname,
+            'path': url.path,
+            'query': url.query,
+            'fragment': url.fragment,
+        }
+        self.ui.lbl_srv_addres.setText('<a href="%(url)s%(pref)s">%(hidden_url)s</a>' % {'url':cur_record['url'], 'pref':"/_utils", 'hidden_url':hidden_url})
         self.ui.lbl_srv_group.setText(cur_record['group'])
         self.ui.lbl_srv_name.setText(cur_record['name'])
         if cur_record['autoupdate']:
