@@ -192,11 +192,14 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
         elif role == QtCore.Qt.DecorationRole:
             if 'error' in self.tasks_rendered and self.tasks_rendered.get('error'):
                 return QtGui.QIcon(ROOT_DIR+'/media/error.png')
+        elif role == QtCore.Qt.BackgroundColorRole:
+            if 'error' in self.tasks_rendered and self.tasks_rendered.get('error'):
+                return
+            if index.column() == 2 and self.tasks_rendered[index.row()].get('progress') == 100:
+                return QtGui.QColor(26,207,63)
         elif role == QtCore.Qt.ForegroundRole:
             if 'error' in self.tasks_rendered: 
                 return 
-            if index.column() == 2 and self.tasks_rendered[index.row()].get('progress') == 100:
-                return self.active_brush
             if index.column() == 2 and self.tasks_rendered[index.row()].get('record_type') == 1:
                 return self.active_brush
             elif self.tasks_rendered[index.row()].get('record_type') == 2:
