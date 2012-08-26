@@ -128,15 +128,26 @@ class MainWindow(QMainWindow):
         """
         cur_record = self.server_model.data(cur_index, SERVER_INFO_ROLE)
         url = urlparse.urlparse(cur_record['url'])
-        hidden_url = '%(scheme)s://%(username)s:%(password)s@%(hostname)s%(path)s' % {
-            'scheme': url.scheme,
-            'username': url.username,
-            'password': '*' * 8,
-            'hostname': url.hostname,
-            'path': url.path,
-            'query': url.query,
-            'fragment': url.fragment,
-        }
+        if url.username:
+            hidden_url = '%(scheme)s://%(username)s:%(password)s@%(hostname)s%(path)s' % {
+                'scheme': url.scheme,
+                'username': url.username,
+                'password': '*' * 8,
+                'hostname': url.hostname,
+                'path': url.path,
+                'query': url.query,
+                'fragment': url.fragment,
+            }
+        else:
+            hidden_url = '%(scheme)s://%(hostname)s%(path)s' % {
+                'scheme': url.scheme,
+                'username': url.username,
+                'password': '*' * 8,
+                'hostname': url.hostname,
+                'path': url.path,
+                'query': url.query,
+                'fragment': url.fragment,
+            }
         self.ui.lbl_srv_addres.setText('<a href="%(url)s%(pref)s">%(hidden_url)s</a>' % {'url':cur_record['url'], 'pref':"/_utils", 'hidden_url':hidden_url})
         self.ui.lbl_srv_group.setText(cur_record['group'])
         self.ui.lbl_srv_name.setText(cur_record['name'])
