@@ -16,9 +16,8 @@ class ServerWindow(QDialog):
             self.ui.chb_enabled.setChecked(False)
         self.mainWindow = mainWindow
         self.serv_data = serv_data
-        self.connect(self.ui.btn_cancel,QtCore.SIGNAL("clicked()"), self.btn_cancel_react)
         self.connect(self.ui.chb_showpass,QtCore.SIGNAL("toggled(bool)"), self.show_pass_react)
-        
+        self.role = role
         self.connect(self.ui.txt_host,QtCore.SIGNAL("textChanged ( const QString &)"), self.field_changed)
         self.connect(self.ui.spin_port,QtCore.SIGNAL("valueChanged ( const QString &)"), self.field_changed)
         self.connect(self.ui.txt_login,QtCore.SIGNAL("textChanged ( const QString &)"), self.field_changed)
@@ -124,9 +123,6 @@ class ServerWindow(QDialog):
             else:
                 logging.debug('save server changes fail')
             
-    def btn_cancel_react(self):
-        self.close()
-        
     def show_pass_react(self,state):
         if state:
             self.ui.txt_password.setEchoMode(QLineEdit.Normal)
@@ -209,10 +205,37 @@ class ServerWindow(QDialog):
         
         return True                            
     
+    def check(self):
+        data = self.serv_data
+        url = self.ui.txt_url.text()
+        name = self.ui.txt_name.text()
+        group = self.ui.cmb_group.currentText()
+        enabled = self.ui.chb_enabled.isChecked()
+        autoupdate = self.ui.spin_time.value()
+        if self.role == 'new' and name == '' and autoupdate == 5 and url == 'http://': 
+            return False
+        elif data['url'] != url or data['name'] != name or data['group'] != group or data['enabled'] != enabled or data['autoupdate'] != autoupdate:
+            button = QMessageBox(QMessageBox.Information, 'Changes', 'The changes will be lost', QtGui.QMessageBox.Ok|QtGui.QMessageBox.Cancel).exec_()
+            if button == QtGui.QMessageBox.Ok:
+                return False
+            elif button == QtGui.QMessageBox.Cancel:
+                return True        
+        else: 
+            return False
+    
+    
     def closeEvent(self,event):
-        try:
-            self.mainWindow.server_windows.remove(self)
-        except:
-            #print "error removing from server windows list"
-            logging.debug('ReplicationWindow: error removing from server windows list')
-
+        if self.check():
+            event.ignore()
+        else:
+            try:
+                self.mainWindow.server_windows.remove(self)
+            except:
+                #print "error removing from server windows list"
+                logging.debug('ReplicationWindow: error removing from server windows list')
+        
+    def keyPressEvent(self, event):
+        if event.key() != Qt.Key_Escape:
+            return self.keyPressEvent(event)
+        else:
+            self.close()
