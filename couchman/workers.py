@@ -26,8 +26,10 @@ class ServerWorker(multiprocessing.Process):
         if self.server['enabled']:
             try:
                 tasks = self.db_server.tasks()
+                error = None
             except:
-                tasks = { "error":sys.exc_value }
+                tasks = None
+                error = sys.exc_value
                 
             try:
                 ver = "ver. %s" % self.db_server.version
@@ -52,7 +54,8 @@ class ServerWorker(multiprocessing.Process):
                                 "updated": update,
                                 "version": ver,
                                 "status": status,
-                                "tasks": tasks,}})
+                                "tasks": tasks,
+                                "error": error,}})
         
     def run(self):
         while self.flag:

@@ -127,6 +127,11 @@ class MainWindow(QMainWindow):
         """Signal slot for servers tree view list current index change
         """
         cur_record = self.server_model.data(cur_index, SERVER_INFO_ROLE)
+        
+        if 'error' in cur_record:
+            self.ui.tlw_replications_label.setText(str(cur_record['error']))
+        else:
+            self.ui.tlw_replications_label.setText("")
         url = urlparse.urlparse(cur_record['url'])
         if url.username:
             hidden_url = '%(scheme)s://%(username)s:%(password)s@%(hostname)s%(path)s' % {
@@ -531,7 +536,11 @@ Error details:
         """Update server data record that was received by worker
         """
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
+        
         serv_record = self.server_model.getServByAddress(address)
+        
+        if data['error']:
+            serv_record["error"] = data['error']
         
         if data['status']:
             serv_record['status'] = True
