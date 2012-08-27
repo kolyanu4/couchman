@@ -9,7 +9,7 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
         super(ServerTreeModel, self).__init__(parent)
         self.servers = []
         self.headers = (" ", "Name", "Group", "Info")
-        self.mainWindow = mainWindow;
+        self.mainWindow = mainWindow
         self.enabled_brush = QtGui.QBrush()
         self.enabled_brush.setColor(QtGui.QColor(0,200,0))
         

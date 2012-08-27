@@ -8,6 +8,7 @@ from server_windows import ServerWindow
 from replication_windows import ReplicationWindow
 from db_manager import DBManager
 from workers import ServerWorker, ReplicationWorker
+from workers_list import *
 from config import *
 from db_json import MyJson
 from UI.UI_MainWindow import *
@@ -55,12 +56,19 @@ class MainWindow(QMainWindow):
         #init lists and dicts for internal use
         self.server_workers = {}
         self.replication_workers = []
+        self.dbs_workers = []
         self.model_list = {}
         self.server_view_list = {}
         
         self.server_windows = []
         self.replication_windows = []
         self.dbmanager_windows = []
+        self.workers_list_windows = []
+        self.workers = []
+        
+        self.workers_list_timer = QTimer()
+        self.connect(self.workers_list_timer, QtCore.SIGNAL("timeout()"), self.workers_list_update) 
+        self.workers_list_timer.start(3000)
         
         #start workers for each server and assign task model record
         
@@ -84,6 +92,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_refresh_sel.clicked.connect(self.btn_refresh_react)
         
         self.ui.btn_dbmanager.clicked.connect(self.btn_dbmanager_react)
+        self.ui.btn_workers_list.clicked.connect(self.btn_workers_list_react)
         
         index = self.ui.tlw_servers.model().index(0,0)
         self.ui.tlw_servers.setCurrentIndex(index)
@@ -243,8 +252,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_rmtask.setEnabled(state)
         self.ui.btn_addtask.setEnabled(state)
         
-      
-
+    
     def btn_add_server_react(self):
         """Slot for Signal"clicked()" of "Add server" button
         """
@@ -272,7 +280,6 @@ class MainWindow(QMainWindow):
         add_replication_win = ReplicationWindow(self, selectedServer, selected_task)
         add_replication_win.show()
         self.replication_windows.append(add_replication_win)
-
     
     def btn_remove_replication_react(self):
         """Slot for Signal"clicked()" of "Remove server" button
@@ -309,8 +316,35 @@ class MainWindow(QMainWindow):
         """
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
         dbmanager_win = DBManager(self.server_view_list,self, self.serv_list,selectedServer)
+        self.dbs_workers = dbmanager_win.db_workers_list
         dbmanager_win.show()
         self.dbmanager_windows.append(dbmanager_win) 
+    
+    def list_of_workers(self):
+        self.workers = []
+        for serv in self.server_workers: 
+            self.workers.append(self.server_workers[serv])
+        for replication in self.replication_workers:
+            self.workers.append(replication)
+        for db in self.dbs_workers:
+            self.workers.append(db)
+    
+    def workers_list_update(self):
+        self.list_of_workers()
+        for win in self.workers_list_windows:
+            new_model = WorkerListTreeModel(self.workers)
+            win.workers_table.setModel(new_model)
+        
+        
+        
+    
+    def btn_workers_list_react(self):
+        """Slot for Signal"clicked()" of "DB manager" button
+        """
+        self.list_of_workers()
+        workers_list_win = WorkerListManager(self)
+        workers_list_win.show()
+        self.workers_list_windows.append(workers_list_win) 
     
     def remove_replication(self):
         """Remove selected replication of selected server
@@ -578,6 +612,9 @@ Error details:
             win.close()
             
         for win in self.dbmanager_windows:
+            win.close()
+        
+        for win in self.workers_list_windows:
             win.close()
         
         
