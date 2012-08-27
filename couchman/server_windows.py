@@ -235,7 +235,5 @@ class ServerWindow(QDialog):
                 logging.debug('ReplicationWindow: error removing from server windows list')
         
     def keyPressEvent(self, event):
-        if event.key() != Qt.Key_Escape:
-            return self.keyPressEvent(event)
-        else:
+        if event.key() == Qt.Key_Escape:
             self.close()
