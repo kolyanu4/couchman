@@ -6,7 +6,7 @@ class WorkerListTreeModel(QAbstractTableModel):
     def __init__(self, workers, parent = None):
         QAbstractTableModel.__init__(self, parent)
         self.workers = workers
-        self.headers = ("Server Name", "Last message from worker", "Type")
+        self.headers = ("Server Name", "Last message from worker at", "Command")
 
     def columnCount(self, parent=None):
         return len(self.headers)

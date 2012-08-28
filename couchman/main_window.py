@@ -28,10 +28,9 @@ class MainWindow(QMainWindow):
         self.MAIN_DB = self.myJson.readFromDB()
         
         #exit on Ctrl-Q/Cmd-Q
-        self.exit_action = QtGui.QAction(self)
-        self.exit_action.setShortcut(QKeySequence.Quit)
-        self.addAction(self.exit_action)
-        self.connect(self.exit_action, SIGNAL("triggered()"), self, SLOT("close()"))
+        self.connect(self.ui.quit_action, SIGNAL("triggered()"), self, SLOT("close()"))
+        self.ui.workers_action.triggered.connect(self.btn_workers_list_react)
+        self.ui.quit_action.setShortcut(QKeySequence.Quit)
         
         #set model for server treeview
         logging.debug("MainWindow: set model for server treeview list")
@@ -43,7 +42,6 @@ class MainWindow(QMainWindow):
         self.ui.tlw_servers.setColumnWidth(0,24)
         self.server_model.reset()
         self.ui.tlw_servers.setSortingEnabled(False)
-        
         
         self.connect(self.ui.tlw_servers, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.server_selection_changed)
         self.connect(self.ui.tlw_replications, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.replication_selection_changed)

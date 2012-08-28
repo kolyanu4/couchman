@@ -17,12 +17,10 @@ class Ui_MainWindow(object):
         self.centralWidget = QtGui.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
         self.horizontalLayout = QtGui.QHBoxLayout(self.centralWidget)
-        
         self.fileMenu = MainWindow.menuBar().addMenu("File")
-        self.fileMenu = MainWindow.menuBar().addMenu("Quit")
-        self.fileMenu = MainWindow.menuBar().addMenu("Windows")
-        self.fileMenu = MainWindow.menuBar().addMenu("Workers")
-        
+        self.quit_action = self.fileMenu.addAction('Quit')
+        self.WindowsMenu = MainWindow.menuBar().addMenu("Windows")
+        self.workers_action = self.WindowsMenu.addAction("Workers")
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.splitter = QtGui.QSplitter(self.centralWidget)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
