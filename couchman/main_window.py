@@ -36,12 +36,24 @@ class MainWindow(QMainWindow):
         self.server_model = ServerTreeModel(self)
         self.ui.tlw_servers.setModel(self.server_model)
         
-        
         self.server_model.servers = self.serv_list
         self.ui.tlw_servers.setColumnWidth(0,24)
         self.server_model.reset()
         self.ui.tlw_servers.setSortingEnabled(False)
         
+        self.servers_context_menu = QtGui.QMenu();
+        self.edit_context_menu = self.servers_context_menu.addAction('Edit');
+        self.edit_context_menu.setShortcut(QtGui.QKeySequence('Ctrl+E'))
+        self.edit_context_menu.triggered.connect(self.btn_edit_server_react)
+        self.remove_context_menu = self.servers_context_menu.addAction('Remove');
+        self.remove_context_menu.setShortcut(QtGui.QKeySequence('Ctrl+R'))
+        self.remove_context_menu.triggered.connect(self.btn_rm_server_react)
+        self.db_manager_context_menu = self.servers_context_menu.addAction('DB Manager');
+        self.db_manager_context_menu.setShortcut(QtGui.QKeySequence('Ctrl+D'))
+        self.db_manager_context_menu.triggered.connect(self.btn_dbmanager_react)
+        
+        self.ui.tlw_servers.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.connect(self.ui.tlw_servers, QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'), self, SLOT('showContextMenuForTreeView(const QPoint &)'))
         self.connect(self.ui.tlw_servers, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.server_selection_changed)
         self.connect(self.ui.tlw_replications, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.replication_selection_changed)
 
@@ -95,6 +107,9 @@ class MainWindow(QMainWindow):
         self.ui.btn_stoptask.clicked.connect(self.btn_stop_replication_react)
         self.ui.btn_rmtask.clicked.connect(self.btn_remove_replication_react)
         self.ui.btn_refresh_sel.clicked.connect(self.btn_refresh_react)
+        
+        index = self.ui.tlw_servers.model().index(0,0)
+        self.ui.tlw_servers.setCurrentIndex(index)
         
         logging.debug("MainWindow: add images for buttons")
         self.ui.add_server_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/true_state.png'))
@@ -602,6 +617,10 @@ Error details:
         self.server_model.update_data();  
         
   
+    def showContextMenuForTreeView(self,pos):
+		 self.servers_context_menu.popup(self.ui.tlw_servers.mapToGlobal(pos))
+		
+    
     def closeEvent(self,event):
         """Close all workers and opened windows before closing self
         """
