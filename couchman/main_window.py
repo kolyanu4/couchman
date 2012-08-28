@@ -30,7 +30,6 @@ class MainWindow(QMainWindow):
         #exit on Ctrl-Q/Cmd-Q
         self.connect(self.ui.quit_action, SIGNAL("triggered()"), self, SLOT("close()"))
         self.ui.workers_action.triggered.connect(self.btn_workers_list_react)
-        self.ui.quit_action.setShortcut(QKeySequence.Quit)
         
         #set model for server treeview
         logging.debug("MainWindow: set model for server treeview list")
@@ -90,7 +89,6 @@ class MainWindow(QMainWindow):
         self.ui.btn_refresh_sel.clicked.connect(self.btn_refresh_react)
         
         self.ui.btn_dbmanager.clicked.connect(self.btn_dbmanager_react)
-        self.ui.btn_workers_list.clicked.connect(self.btn_workers_list_react)
         
         index = self.ui.tlw_servers.model().index(0,0)
         self.ui.tlw_servers.setCurrentIndex(index)
@@ -342,6 +340,7 @@ class MainWindow(QMainWindow):
             workers_list_win.show()
         else:
             self.workers_list_windows[0].show()
+            self.workers_list_windows[0].activateWindow()
         
     
     def remove_replication(self):
