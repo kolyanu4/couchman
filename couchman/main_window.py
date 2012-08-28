@@ -76,11 +76,19 @@ class MainWindow(QMainWindow):
             self.serv_list.append(serv)
             
         
+        for i in range(self.ui.tlw_servers.model().columnCount()):
+            if i!=0: 
+                self.ui.tlw_servers.resizeColumnToContents(i) 
+        
         logging.debug("MainWindow: connect buttons to Signals ")
         #buttons connectors
-        self.ui.btn_addserver.clicked.connect(self.btn_add_server_react)
-        self.ui.btn_editserver.clicked.connect(self.btn_edit_server_react)
-        self.ui.btn_rmserver.clicked.connect(self.btn_rm_server_react)
+        self.ui.add_server_action.triggered.connect(self.btn_add_server_react)
+        self.ui.edit_server_action.triggered.connect(self.btn_edit_server_react)
+        self.ui.remove_server_action.triggered.connect(self.btn_rm_server_react)
+        self.ui.db_manager_action.triggered.connect(self.btn_dbmanager_react)
+        
+        self.ui.tlw_servers.doubleClicked.connect(self.btn_dbmanager_react)
+        
         self.ui.btn_addtask.clicked.connect(self.btn_add_replication_react)
         self.ui.btn_starttask.clicked.connect(self.btn_start_replication_react)
         self.ui.btn_start_con.clicked.connect(self.btn_start_con_replication_react)
@@ -88,15 +96,13 @@ class MainWindow(QMainWindow):
         self.ui.btn_rmtask.clicked.connect(self.btn_remove_replication_react)
         self.ui.btn_refresh_sel.clicked.connect(self.btn_refresh_react)
         
-        self.ui.btn_dbmanager.clicked.connect(self.btn_dbmanager_react)
-        
-        index = self.ui.tlw_servers.model().index(0,0)
-        self.ui.tlw_servers.setCurrentIndex(index)
-        
         logging.debug("MainWindow: add images for buttons")
-        self.ui.btn_addserver.setIcon(QtGui.QIcon(ROOT_DIR+'/media/true_state.png'))
-        self.ui.btn_rmserver.setIcon(QtGui.QIcon(ROOT_DIR+'/media/false_state.png'))
-        self.ui.btn_editserver.setIcon(QtGui.QIcon(ROOT_DIR+'/media/options.png'))
+        self.ui.add_server_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/true_state.png'))
+        self.ui.add_server_action.setIconVisibleInMenu(True)
+        self.ui.remove_server_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/false_state.png'))
+        self.ui.remove_server_action.setIconVisibleInMenu(True)
+        self.ui.edit_server_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/options.png'))
+        self.ui.edit_server_action.setIconVisibleInMenu(True)
         
         self.ui.btn_starttask.setIcon(QtGui.QIcon(ROOT_DIR+'/media/play.png'))
         self.ui.btn_start_con.setIcon(QtGui.QIcon(ROOT_DIR+'/media/play2.png'))
@@ -105,7 +111,8 @@ class MainWindow(QMainWindow):
         self.ui.btn_rmtask.setIcon(QtGui.QIcon(ROOT_DIR+'/media/false_state.png'))
         
         self.ui.btn_refresh_sel.setIcon(QtGui.QIcon(ROOT_DIR+'/media/refresh.png'))
-        self.ui.btn_dbmanager.setIcon(QtGui.QIcon(ROOT_DIR+'/media/workflow.png'))
+        self.ui.db_manager_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/workflow.png'))
+        self.ui.db_manager_action.setIconVisibleInMenu(True)
         
         self.timer.start(300)
         
@@ -178,7 +185,6 @@ class MainWindow(QMainWindow):
             self.ui.tlw_replications.setModel(self.tasks_model)
             self.tasks_model.update_data()
             
-            self.ui.btn_addserver.setEnabled(True)
             self.empty_rep_list_status()
             
             if len(self.tasks_model.tasks_rendered) == 0:
@@ -485,7 +491,6 @@ class MainWindow(QMainWindow):
                 self.ui.tlw_servers.setCurrentIndex(index)
             
             if self.server_model.rowCount() == 0:
-                self.ui.btn_rmserver.setEnabled(False)
                 self.ui.tlw_servers.setEnabled(False)
                 self.ui.tlw_replications.setEnabled(False)
                 
@@ -495,8 +500,6 @@ class MainWindow(QMainWindow):
                 self.ui.btn_stoptask.setEnabled(False)
                 self.ui.btn_addtask.setEnabled(False)
                 self.ui.btn_rmtask.setEnabled(False)
-                self.ui.btn_editserver.setEnabled(False)
-                
                 self.ui.lbl_srv_group.setText("")
                 self.ui.lbl_srv_addres.setText("")
                 self.ui.lbl_srv_name.setText("")
