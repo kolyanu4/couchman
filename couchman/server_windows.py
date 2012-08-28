@@ -211,7 +211,10 @@ class ServerWindow(QDialog):
         name = self.ui.txt_name.text()
         group = self.ui.cmb_group.currentText()
         enabled = self.ui.chb_enabled.isChecked()
-        autoupdate = self.ui.spin_time.value()
+        if self.ui.group_autoupdate.isChecked():
+            autoupdate = self.ui.spin_time.value()
+        else:
+            autoupdate = None
         if self.role == 'new' and name == '' and autoupdate == 5 and url == 'http://': 
             return False
         elif data['url'] != url or data['name'] != name or data['group'] != group or data['enabled'] != enabled or data['autoupdate'] != autoupdate:
@@ -237,3 +240,7 @@ class ServerWindow(QDialog):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
             self.close()
+        elif event.key() == Qt.Key_Enter or event.key() == 16777220 and self.role == 'new': 
+            self.btn_add_react()
+        elif event.key() == Qt.Key_Enter or event.key() == 16777220 and self.role != 'new': 
+            self.btn_edit_react()

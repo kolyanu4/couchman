@@ -26,7 +26,7 @@ class ServerWorker(multiprocessing.Process):
         if self.server['enabled']:
             try:
                 tasks = self.db_server.tasks()
-                error = None
+                error = " "
             except:
                 tasks = None
                 error = sys.exc_value

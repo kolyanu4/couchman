@@ -1,4 +1,4 @@
-import multiprocessing, logging, sys, urlparse
+import multiprocessing, logging, sys, urlparse, datetime
 from time import sleep
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -68,7 +68,7 @@ class MainWindow(QMainWindow):
         
         self.workers_list_timer = QTimer()
         self.connect(self.workers_list_timer, QtCore.SIGNAL("timeout()"), self.workers_list_update) 
-        self.workers_list_timer.start(3000)
+        self.workers_list_timer.start(2000)
         
         #start workers for each server and assign task model record
         
@@ -121,14 +121,14 @@ class MainWindow(QMainWindow):
             logging.debug("MainWindow: start server worker for %s" % data["url"])
             self_pipe, remote_pipe = multiprocessing.Pipe(duplex = True)
             connector = ServerWorker(remote_pipe, data, self.MAIN_DB['defaults'])
-            self.server_workers[data['url']] = {'pipe':self_pipe,'thread':connector}
+            self.server_workers[data['url']] = {'pipe':self_pipe,'thread':connector, 'name':data['name'], 'command':'server'}
             connector.start()
             self_pipe.send({'command':'update_server'})
         elif type == 'replication':
             logging.debug("MainWindow: start replication worker for %s" % data["server"])
             self_pipe, remote_pipe = multiprocessing.Pipe(duplex = True)
             connector = ReplicationWorker(remote_pipe,data)
-            self.replication_workers.append({"pipe":self_pipe,"thread":remote_pipe})
+            self.replication_workers.append({"pipe":self_pipe,"thread":remote_pipe, 'name':data['server']['name'], 'command':'replication'})
             connector.start()
             return self_pipe
       
@@ -326,8 +326,6 @@ class MainWindow(QMainWindow):
             self.workers.append(self.server_workers[serv])
         for replication in self.replication_workers:
             self.workers.append(replication)
-        for db in self.dbs_workers:
-            self.workers.append(db)
     
     def workers_list_update(self):
         self.list_of_workers()
@@ -335,16 +333,18 @@ class MainWindow(QMainWindow):
             new_model = WorkerListTreeModel(self.workers)
             win.workers_table.setModel(new_model)
         
-        
-        
     
     def btn_workers_list_react(self):
         """Slot for Signal"clicked()" of "DB manager" button
         """
         self.list_of_workers()
-        workers_list_win = WorkerListManager(self)
-        workers_list_win.show()
-        self.workers_list_windows.append(workers_list_win) 
+        if not self.workers_list_windows: 
+            workers_list_win = WorkerListManager(self)
+            self.workers_list_windows.append(workers_list_win) 
+            workers_list_win.show()
+        else:
+            self.workers_list_windows[0].show()
+        
     
     def remove_replication(self):
         """Remove selected replication of selected server
@@ -518,6 +518,7 @@ class MainWindow(QMainWindow):
             obj = self.server_workers[item_key]
             worker = obj.get('pipe')
             while worker.poll():
+                obj['last_message'] = datetime.datetime.now().strftime(DATETIME_FMT)
                 data = worker.recv()
                 if "command" in data:
                     if data["command"] == "update_server":
@@ -528,6 +529,7 @@ class MainWindow(QMainWindow):
         for rep in self.replication_workers:
             worker = rep.get('pipe')
             while worker and worker.poll():
+                rep['last_message'] = datetime.datetime.now().strftime(DATETIME_FMT)
                 data = worker.recv()
                 if "command" in data:
                     if data.get("command") == "error":
