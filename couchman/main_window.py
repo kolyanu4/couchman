@@ -125,21 +125,27 @@ class MainWindow(QMainWindow):
         self.timer.start(300)
         
     
-    def start_worker(self,type,data):
+    def start_worker(self,type,data, command = None):
         """Start multiprocessing worker of given type.
         """
         if type == 'server':
             logging.debug("MainWindow: start server worker for %s" % data["url"])
             self_pipe, remote_pipe = multiprocessing.Pipe(duplex = True)
             connector = ServerWorker(remote_pipe, data, self.MAIN_DB['defaults'])
-            self.server_workers[data['url']] = {'pipe':self_pipe,'thread':connector, 'name':data['name'], 'command':'server'}
+            self.server_workers[data['url']] = {'pipe':self_pipe,'thread':connector, 'name':data['name'], 'type':'server'}
             connector.start()
+            self.server_workers[data['url']]['send_command'] = 'update_server'
+            self.server_workers[data['url']]['send_date'] = datetime.datetime.now().strftime(DATETIME_FMT)
             self_pipe.send({'command':'update_server'})
         elif type == 'replication':
             logging.debug("MainWindow: start replication worker for %s" % data["server"])
             self_pipe, remote_pipe = multiprocessing.Pipe(duplex = True)
             connector = ReplicationWorker(remote_pipe,data)
-            self.replication_workers.append({"pipe":self_pipe,"thread":remote_pipe, 'name':data['server']['name'], 'command':'replication'})
+            self.replication_workers.append({"pipe":self_pipe,"thread":remote_pipe, 
+                                            'name':data['server']['name'], 
+                                            'type':'replication', 
+                                            'send_command': command,
+                                            'send_date': datetime.datetime.now().strftime(DATETIME_FMT),})
             connector.start()
             return self_pipe
       
@@ -319,6 +325,9 @@ class MainWindow(QMainWindow):
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
         #send signal to worker for update data    
         cur_worker = self.server_workers.get(selectedServer.get('url')).get('pipe')
+        serv = self.server_workers.get(selectedServer.get('url'))
+        serv['command'] = 'update_server'
+        serv['send_date'] = datetime.datetime.now().strftime(DATETIME_FMT)
         cur_worker.send({'command': 'update_server'})
     
     def btn_dbmanager_react(self):
@@ -381,6 +390,9 @@ class MainWindow(QMainWindow):
             if len(self.tasks_model.tasks_rendered) < 2:
                 self.empty_rep_list_status()
             pipe = self.server_workers.get(selectedServer.get('url')).get('pipe')
+            serv = self.server_workers.get(selectedServer.get('url'))
+            serv['command'] = 'update_server'
+            serv['send_date'] = datetime.datetime.now().strftime(DATETIME_FMT)
             pipe.send({"command": "update_server"})
                 
        
@@ -416,7 +428,7 @@ class MainWindow(QMainWindow):
                                             'query': selected_task.get('query', ""),
                                             'proxy': selected_task.get('proxy', ""),
                                             'server': selectedServer,
-                                            })
+                                            }, 'start_replication')
             pipe.send({'command': 'start_replication'})
       
     def stop_replication(self):
@@ -447,7 +459,7 @@ class MainWindow(QMainWindow):
                                             'query': selected_task.get('query', ""),
                                             'proxy': selected_task.get('proxy', ""),
                                             'server': selectedServer,
-                                            })
+                                            }, 'stop_replication')
             pipe.send({'command': 'stop_replication'})
 
             
@@ -460,6 +472,9 @@ class MainWindow(QMainWindow):
         rep_list.append(record)
         if self.myJson.save(self.serv_list):
             pipe = self.server_workers.get(server.get('url')).get('pipe')
+            serv = self.server_workers.get(server.get('url'))
+            serv['command'] = 'update_server'
+            serv['send_date'] = datetime.datetime.now().strftime(DATETIME_FMT)
             pipe.send({"command": 'update_server'})
         else:
             #print "error saving"
@@ -526,10 +541,11 @@ class MainWindow(QMainWindow):
             obj = self.server_workers[item_key]
             worker = obj.get('pipe')
             while worker.poll():
-                obj['last_message'] = datetime.datetime.now().strftime(DATETIME_FMT)
+                obj['last_rec_message'] = datetime.datetime.now().strftime(DATETIME_FMT)
                 data = worker.recv()
+                obj['rec_command'] = data["command"]
                 if "command" in data:
-                    if data["command"] == "update_server":
+                    if data["command"] == "end_update_server":
                         #print "timer: update server status for %s" % data["url"]
                         #print "new task list: %s" % data.get('tasks')
                         self.update_server_data(data.get("url"), data.get("data"))
@@ -537,8 +553,9 @@ class MainWindow(QMainWindow):
         for rep in self.replication_workers:
             worker = rep.get('pipe')
             while worker and worker.poll():
-                rep['last_message'] = datetime.datetime.now().strftime(DATETIME_FMT)
+                rep['last_rec_message'] = datetime.datetime.now().strftime(DATETIME_FMT)
                 data = worker.recv()
+                rep['rec_command'] = data["command"]
                 if "command" in data:
                     if data.get("command") == "error":
                         QMessageBox(QMessageBox.Critical, 'Error',  
@@ -569,6 +586,8 @@ Error details:
             data.get("query", "")), QtGui.QMessageBox.Ok).exec_()
                         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(),SERVER_INFO_ROLE)
                         if selectedServer.get('url') == data.get('url'):
+                            serv = self.server_workers.get(selectedServer.get('url'))
+                            serv['command'] = 'update_server'
                             pipe = self.server_workers.get(data.get('url')).get('pipe')
                             pipe.send({"command": "update_server"})
                         

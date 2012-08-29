@@ -48,7 +48,7 @@ class ServerWorker(multiprocessing.Process):
             update = datetime.now() - timedelta(seconds = self.update_period * self.tries)
         else:
             update = datetime.now()
-        self.pipe.send({"command": "update_server", 
+        self.pipe.send({"command": "end_update_server", 
                         "url": self.server['url'],
                         "data":{"enabled": self.server['enabled'],
                                 "updated": update,
@@ -61,7 +61,6 @@ class ServerWorker(multiprocessing.Process):
         while self.flag:
             while self.pipe.poll():
                 data = self.pipe.recv()
-
                 if "command" in data:
                     command = data['command']
                     if command == "update_server":

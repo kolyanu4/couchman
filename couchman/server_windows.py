@@ -117,6 +117,7 @@ class ServerWindow(QDialog):
                     del self.mainWindow.model_list[url]
                 obj = self.mainWindow.server_workers[self.serv_data["url"]]
                 pipe = obj['pipe']
+                obj['command'] = 'update_data'
                 pipe.send({"command":'update_data', "data":self.serv_data})
                 self.mainWindow.server_model.update_data()
                 self.close()
