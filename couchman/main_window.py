@@ -41,22 +41,15 @@ class MainWindow(QMainWindow):
         self.server_model.reset()
         self.ui.tlw_servers.setSortingEnabled(False)
         
-        self.servers_context_menu = QtGui.QMenu();
-        self.edit_context_menu = self.servers_context_menu.addAction('Edit');
-        self.edit_context_menu.setShortcut(QtGui.QKeySequence('Ctrl+E'))
-        self.edit_context_menu.triggered.connect(self.btn_edit_server_react)
-        self.remove_context_menu = self.servers_context_menu.addAction('Remove');
-        self.remove_context_menu.setShortcut(QtGui.QKeySequence('Ctrl+R'))
-        self.remove_context_menu.triggered.connect(self.btn_rm_server_react)
-        self.db_manager_context_menu = self.servers_context_menu.addAction('DB Manager');
-        self.db_manager_context_menu.setShortcut(QtGui.QKeySequence('Ctrl+D'))
-        self.db_manager_context_menu.triggered.connect(self.btn_dbmanager_react)
+        #create and add action to servers table
+        self.ui.tlw_servers.addAction(self.ui.edit_server_action)
+        self.ui.tlw_servers.addAction(self.ui.remove_server_action)
+        self.ui.tlw_servers.addAction(self.ui.db_manager_action)
+        self.ui.tlw_servers.setContextMenuPolicy(Qt.ActionsContextMenu)
         
-        self.ui.tlw_servers.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.connect(self.ui.tlw_servers, QtCore.SIGNAL('customContextMenuRequested(const QPoint &)'), self, SLOT('showContextMenuForTreeView(const QPoint &)'))
         self.connect(self.ui.tlw_servers, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.server_selection_changed)
         self.connect(self.ui.tlw_replications, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.replication_selection_changed)
-
+        
         #worker's main timer
         logging.debug("MainWindow: create timer for wokers main loop")
         self.timer = QTimer()
@@ -616,10 +609,6 @@ Error details:
            
         self.server_model.update_data();  
         
-  
-    def showContextMenuForTreeView(self,pos):
-		 self.servers_context_menu.popup(self.ui.tlw_servers.mapToGlobal(pos))
-		
     
     def closeEvent(self,event):
         """Close all workers and opened windows before closing self
