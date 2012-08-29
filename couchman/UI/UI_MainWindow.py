@@ -9,6 +9,7 @@
 
 import pkg_resources
 from PySide import QtCore, QtGui
+from list_prototype import ServersList
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -17,7 +18,6 @@ class Ui_MainWindow(object):
         self.centralWidget = QtGui.QWidget(MainWindow)
         self.centralWidget.setObjectName("centralWidget")
         self.horizontalLayout = QtGui.QHBoxLayout(self.centralWidget)
-        
         MainWindow.setCentralWidget(self.centralWidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 840, 28))
@@ -26,8 +26,10 @@ class Ui_MainWindow(object):
         self.ServersMenu = QtGui.QMenu("Servers", self.menubar)
         self.WindowsMenu = QtGui.QMenu("Windows", self.menubar)
         MainWindow.setMenuBar(self.menubar)
-        self.quit_action = self.fileMenu.addAction('Quit')
-        self.quit_action.setShortcut(QtGui.QKeySequence.Quit)
+        self.quit_action = QtGui.QAction(MainWindow)
+        self.fileMenu.addAction(self.quit_action)
+        self.quit_action.setText("Quit")
+        self.quit_action.setShortcut(QtGui.QKeySequence('Ctrl+Q'))
         self.add_server_action = self.ServersMenu.addAction("Add Server")
         self.add_server_action.setShortcut(QtGui.QKeySequence('Ctrl+A'))
         self.remove_server_action = self.ServersMenu.addAction("Remove Server")
@@ -42,7 +44,6 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.ServersMenu.menuAction())
         self.menubar.addAction(self.WindowsMenu.menuAction())
         MainWindow.setMenuBar(self.menubar)
-        
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.splitter = QtGui.QSplitter(self.centralWidget)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -204,4 +205,3 @@ class Ui_MainWindow(object):
         self.actionRemove_Server.setText(QtGui.QApplication.translate("MainWindow", "Remove", None, QtGui.QApplication.UnicodeUTF8))
         self.actionRemove_Server.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+R", None, QtGui.QApplication.UnicodeUTF8))
 
-from list_prototype import ServersList
