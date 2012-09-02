@@ -12,7 +12,6 @@ class ReplicationWindow(QDialog):
         self.ui.setupUi(self)
         self.mainWindow = mainWindow
         self.server_obj = server_obj
-        self.connect(self.ui.btn_cancel, QtCore.SIGNAL("clicked()"), self.cancel_react)
         if replication_record:
             cur_type = replication_record.get('record_type')
         else:
@@ -172,11 +171,6 @@ class ReplicationWindow(QDialog):
                 self.close()
                 
         
-                   
-    def cancel_react(self):
-        self.close()
-    
-    
     def validate(self):
         if not self.ui.rdb_localsource.isChecked() and not str(self.ui.txt_remotesource.text()):
             QMessageBox(QMessageBox.Critical, 'Error', 'Source field are required', QtGui.QMessageBox.Ok).exec_()

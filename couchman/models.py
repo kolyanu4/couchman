@@ -16,7 +16,6 @@ class ServerTreeModel(QtCore.QAbstractTableModel):
         self.disabled_brush = QtGui.QBrush()
         self.disabled_brush.setColor(QtCore.Qt.gray)
         
-        
 
     def columnCount(self, parent=None):
         return len(self.headers)

@@ -4,3 +4,4 @@ monitor.log
 build/
 couchman.egg-info/
 dist/
+couchman/UI/*.py

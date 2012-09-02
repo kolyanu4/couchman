@@ -1,4 +1,4 @@
-import multiprocessing, logging, sys, urlparse, datetime
+import multiprocessing, logging, sys, urlparse, datetime, pkg_resources
 from time import sleep
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -21,19 +21,21 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         
+        self.revision = pkg_resources.get_distribution("couchman").version
+        self.setWindowTitle("Replication Manager - %s" % self.revision)
+        
         logging.debug('MainWindow: Create myJson class')
         self.myJson = MyJson()
         logging.debug('MainWindow: Getting data from json file')
         self.serv_list = []
         self.MAIN_DB = self.myJson.readFromDB()
         
-        #exit on Ctrl-Q/Cmd-Q
-        self.connect(self.ui.quit_action, SIGNAL("triggered()"), self, SLOT("close()"))
-        self.ui.workers_action.triggered.connect(self.btn_workers_list_react)
+        self.ui.actionWorkers.triggered.connect(self.btn_workers_list_react)
         
         #set model for server treeview
         logging.debug("MainWindow: set model for server treeview list")
         self.server_model = ServerTreeModel(self)
+        
         self.ui.tlw_servers.setModel(self.server_model)
         
         self.server_model.servers = self.serv_list
@@ -42,13 +44,12 @@ class MainWindow(QMainWindow):
         self.ui.tlw_servers.setSortingEnabled(False)
         
         #create and add action to servers table
-        self.ui.tlw_servers.addAction(self.ui.edit_server_action)
-        self.ui.tlw_servers.addAction(self.ui.remove_server_action)
-        self.ui.tlw_servers.addAction(self.ui.db_manager_action)
-        self.ui.tlw_servers.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.ui.tlw_servers.addAction(self.ui.actionEdit_Server)
+        self.ui.tlw_servers.addAction(self.ui.actionRemove_Server)
+        self.ui.tlw_servers.addAction(self.ui.actionDB_Manager)
         
-        self.connect(self.ui.tlw_servers, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.server_selection_changed)
-        self.connect(self.ui.tlw_replications, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.replication_selection_changed)
+        self.connect(self.ui.tlw_servers, QtCore.SIGNAL('clicked (const QModelIndex &)'), self.server_selection_changed)
+        self.connect(self.ui.tlw_replications, QtCore.SIGNAL('clicked (const QModelIndex &)'), self.replication_selection_changed)
         
         #worker's main timer
         logging.debug("MainWindow: create timer for wokers main loop")
@@ -87,10 +88,10 @@ class MainWindow(QMainWindow):
         
         logging.debug("MainWindow: connect buttons to Signals ")
         #buttons connectors
-        self.ui.add_server_action.triggered.connect(self.btn_add_server_react)
-        self.ui.edit_server_action.triggered.connect(self.btn_edit_server_react)
-        self.ui.remove_server_action.triggered.connect(self.btn_rm_server_react)
-        self.ui.db_manager_action.triggered.connect(self.btn_dbmanager_react)
+        self.ui.actionAdd_Server.triggered.connect(self.btn_add_server_react)
+        self.ui.actionEdit_Server.triggered.connect(self.btn_edit_server_react)
+        self.ui.actionRemove_Server.triggered.connect(self.btn_rm_server_react)
+        self.ui.actionDB_Manager.triggered.connect(self.btn_dbmanager_react)
         
         self.ui.tlw_servers.doubleClicked.connect(self.btn_dbmanager_react)
         
@@ -103,15 +104,12 @@ class MainWindow(QMainWindow):
         
         index = self.ui.tlw_servers.model().index(0,0)
         self.ui.tlw_servers.setCurrentIndex(index)
+        self.ui.tlw_servers.emit(QtCore.SIGNAL("clicked (const QModelIndex & )"),index)
         
         logging.debug("MainWindow: add images for buttons")
-        self.ui.add_server_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/true_state.png'))
-        self.ui.add_server_action.setIconVisibleInMenu(True)
-        self.ui.remove_server_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/false_state.png'))
-        self.ui.remove_server_action.setIconVisibleInMenu(True)
-        self.ui.edit_server_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/options.png'))
-        self.ui.edit_server_action.setIconVisibleInMenu(True)
-        
+        self.ui.actionAdd_Server.setIcon(QtGui.QIcon(ROOT_DIR+'/media/true_state.png'))
+        self.ui.actionRemove_Server.setIcon(QtGui.QIcon(ROOT_DIR+'/media/false_state.png'))
+        self.ui.actionEdit_Server.setIcon(QtGui.QIcon(ROOT_DIR+'/media/options.png'))        
         self.ui.btn_starttask.setIcon(QtGui.QIcon(ROOT_DIR+'/media/play.png'))
         self.ui.btn_start_con.setIcon(QtGui.QIcon(ROOT_DIR+'/media/play2.png'))
         self.ui.btn_stoptask.setIcon(QtGui.QIcon(ROOT_DIR+'/media/stop.png'))
@@ -119,8 +117,7 @@ class MainWindow(QMainWindow):
         self.ui.btn_rmtask.setIcon(QtGui.QIcon(ROOT_DIR+'/media/false_state.png'))
         
         self.ui.btn_refresh_sel.setIcon(QtGui.QIcon(ROOT_DIR+'/media/refresh.png'))
-        self.ui.db_manager_action.setIcon(QtGui.QIcon(ROOT_DIR+'/media/workflow.png'))
-        self.ui.db_manager_action.setIconVisibleInMenu(True)
+        self.ui.actionDB_Manager.setIcon(QtGui.QIcon(ROOT_DIR+'/media/workflow.png'))
         
         self.timer.start(300)
         
@@ -350,7 +347,7 @@ class MainWindow(QMainWindow):
         self.list_of_workers()
         for win in self.workers_list_windows:
             new_model = WorkerListTreeModel(self.workers)
-            win.workers_table.setModel(new_model)
+            win.ui.workers_table.setModel(new_model)
         
     
     def btn_workers_list_react(self):

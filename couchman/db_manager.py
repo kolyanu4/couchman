@@ -38,8 +38,6 @@ class DBManager(QWidget):
         self.ui.btn_ping.setEnabled(False)
         self.setCursor(QCursor(QPixmap(ROOT_DIR+'/media/refresh.png')))
         
-        #refresh.png
-        
         i = 0
         curr = None
         for serv in self.server_list:
@@ -56,8 +54,8 @@ class DBManager(QWidget):
             i += 1
 
         self.connect(self.ui.cmb_servers, QtCore.SIGNAL("currentIndexChanged (int)"), self.on_server_changed)
-        self.connect(self.ui.tlw_db_list, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.db_selection_changed)
-        self.connect(self.ui.tlw_view_list, QtCore.SIGNAL('list_currentChanged (const QModelIndex &)'), self.view_selection_changed)
+        self.connect(self.ui.tlw_db_list, QtCore.SIGNAL('clicked (const QModelIndex &)'), self.db_selection_changed)
+        self.connect(self.ui.tlw_view_list, QtCore.SIGNAL('clicked (const QModelIndex &)'), self.view_selection_changed)
         
         self.connect(self.ui.btn_refresh_all, QtCore.SIGNAL("clicked()"), self.btn_refresh_all_react)
         self.connect(self.ui.btn_ping, QtCore.SIGNAL("clicked()"), self.btn_ping_react)

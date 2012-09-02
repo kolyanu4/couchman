@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>DocManager</class>
+ <widget class="QWidget" name="DocManager">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>803</width>
+    <height>389</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>DB Manager</string>
+  </property>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>67</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>Servers:</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="cmb_servers">
+   <property name="geometry">
+    <rect>
+     <x>83</x>
+     <y>16</y>
+     <width>318</width>
+     <height>27</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QTreeView" name="tlw_db_list">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>50</y>
+     <width>380</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <property name="cursor" stdset="0">
+    <cursorShape>ArrowCursor</cursorShape>
+   </property>
+   <property name="editTriggers">
+    <set>QAbstractItemView::CurrentChanged|QAbstractItemView::DoubleClicked</set>
+   </property>
+   <property name="showDropIndicator" stdset="0">
+    <bool>false</bool>
+   </property>
+   <property name="rootIsDecorated">
+    <bool>false</bool>
+   </property>
+   <property name="itemsExpandable">
+    <bool>false</bool>
+   </property>
+   <property name="expandsOnDoubleClick">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_clean_views">
+   <property name="geometry">
+    <rect>
+     <x>19</x>
+     <y>340</y>
+     <width>121</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Cleanup views</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_compact_views">
+   <property name="geometry">
+    <rect>
+     <x>147</x>
+     <y>340</y>
+     <width>141</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Compact views</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_compact_db">
+   <property name="geometry">
+    <rect>
+     <x>295</x>
+     <y>340</y>
+     <width>106</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Compact db</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>20</y>
+     <width>91</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Last refresh:</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lbl_last_update">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>20</y>
+     <width>111</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_refresh_all">
+   <property name="geometry">
+    <rect>
+     <x>671</x>
+     <y>15</y>
+     <width>111</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Refresh all</string>
+   </property>
+  </widget>
+  <widget class="QTreeView" name="tlw_view_list">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>50</y>
+     <width>361</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <property name="cursor" stdset="0">
+    <cursorShape>ArrowCursor</cursorShape>
+   </property>
+   <property name="editTriggers">
+    <set>QAbstractItemView::CurrentChanged|QAbstractItemView::DoubleClicked</set>
+   </property>
+   <property name="showDropIndicator" stdset="0">
+    <bool>false</bool>
+   </property>
+   <property name="rootIsDecorated">
+    <bool>false</bool>
+   </property>
+   <property name="itemsExpandable">
+    <bool>false</bool>
+   </property>
+   <property name="expandsOnDoubleClick">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_compact">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>340</y>
+     <width>97</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Compact</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btn_ping">
+   <property name="geometry">
+    <rect>
+     <x>526</x>
+     <y>340</y>
+     <width>81</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Ping</string>
+   </property>
+  </widget>
+  <action name="actionClosemanager">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>closemanager</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,6 +1,6 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
-
+from UI.UI_WorkersWindow import *
 
 class WorkerListTreeModel(QAbstractTableModel):
     def __init__(self, workers, parent = None):
@@ -72,17 +72,10 @@ class WorkerListManager(QWidget):
 
     def __init__(self, mainWindow):
         super(WorkerListManager, self).__init__()
-        self.resize(800,400)
+        self.ui = Ui_WorkersWindow()
+        self.ui.setupUi(self)
         self.mainwindow = mainWindow
-        self.setWindowTitle("Workers List")
-        self.workers_table = QTreeView()
-        self.workers_table.setItemsExpandable(False)
-        self.workers_table.setExpandsOnDoubleClick(False)
-        self.workers_table.setRootIsDecorated(False)
         self.workers_list_model = WorkerListTreeModel(self.mainwindow.workers)
-        self.workers_table.setModel(self.workers_list_model)
+        self.ui.workers_table.setModel(self.workers_list_model)
         for i in range(self.workers_list_model.columnCount()):
-            self.workers_table.resizeColumnToContents(i) 
-        layout = QHBoxLayout()
-        layout.addWidget(self.workers_table)
-        self.setLayout(layout)
+            self.ui.workers_table.resizeColumnToContents(i)

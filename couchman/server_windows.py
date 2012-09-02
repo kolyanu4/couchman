@@ -31,11 +31,12 @@ class ServerWindow(QDialog):
         if role == 'new':
             self.ui.btn_add.setText("Add")
             self.connect(self.ui.btn_add,QtCore.SIGNAL("clicked()"), self.btn_add_react)
-            
+            self.setWindowTitle("Add Server")
             self.ui.txt_url.setText('%s://' % str(self.ui.cmb_protocol.currentText()))
             
         else:
             self.ui.btn_add.setText("Save")
+            self.setWindowTitle("Edit Server")
             self.connect(self.ui.btn_add,QtCore.SIGNAL("clicked()"), self.btn_edit_react)
             
             self.ui.txt_name.setText(serv_data.get('name'))
