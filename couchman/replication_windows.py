@@ -39,10 +39,6 @@ class ReplicationWindow(QDialog):
             txt_lst = replication_record.get('task').split(' ')
             task_source = txt_lst[1]
             task_target = txt_lst[3]
-            
-#            self.ui.txt_source.setText(task_source)
-#            self.ui.txt_target.setText(task_target)
-        
         
         for i, value in enumerate(db_names):
             self.ui.cmb_localsource.addItem(value, userData=value)
@@ -72,9 +68,7 @@ class ReplicationWindow(QDialog):
                 doc_id = row.id.split('/')[1]
                 for name in row.doc.filters:
                     functions.append("%s/%s" % (doc_id, name))
-
         return functions
-
     
     def fill_filters(self):
         server = self.server_obj['url']
@@ -93,19 +87,15 @@ class ReplicationWindow(QDialog):
             db_list = db.split('/')
             if len(db_list) == 3:
                 db =  db_list[1]
-
         filter_list = []
-
         try:
             remote_serv = Server(str(server))
             remote_db = remote_serv[db]
             filter_list = self.filter_functions(remote_db)
             self.ui.cmb_filters.clear()
             self.ui.cmb_filters.addItems(QStringList(filter_list))
-
         except:
             QMessageBox(QMessageBox.Critical, 'Error', 'Error while fetching filter functions', QtGui.QMessageBox.Ok).exec_()
-             
     
     def localsource_toggeled(self, state):
         if state:
@@ -114,7 +104,6 @@ class ReplicationWindow(QDialog):
         else:
             self.ui.txt_remotesource.setEnabled(True)
             self.ui.cmb_localsource.setEnabled(False)
-    
     
     def localtarget_toggeled(self, state):
         if state:
@@ -125,12 +114,11 @@ class ReplicationWindow(QDialog):
             self.ui.cmb_localtarget.setEnabled(False)
     def key_pressed(self,event):    
         print "key pressed ",event.key  
-            
+    
     def add_react(self):
         """Slot for signal "clicked()" of "Add" button 
         """
         if self.validate():
-
             source = str(self.ui.txt_remotesource.text())
             if self.ui.rdb_localsource.isChecked():
                 source = str(self.ui.cmb_localsource.currentText())
@@ -152,9 +140,6 @@ class ReplicationWindow(QDialog):
                     QMessageBox(QMessageBox.Critical, 'Error', 'Error parsing query field', QtGui.QMessageBox.Ok).exec_()
                     return
             
-            
-           
-            
             if source.startswith("http"):
                 if not source.endswith("/"):
                     source += "/"
@@ -163,7 +148,6 @@ class ReplicationWindow(QDialog):
                     target += "/"
             
             new_relication = {'source': source, 'target': target, 'proxy': proxy, 'filter': filter, 'query': query}
-
             if new_relication in self.server_obj.get('replications'):
                 QMessageBox(QMessageBox.Warning, 'Warning', 'Record for this replication already exist.', QtGui.QMessageBox.Ok).exec_()
             else:
@@ -179,7 +163,6 @@ class ReplicationWindow(QDialog):
         if not self.ui.rdb_localtarget.isChecked() and not str(self.ui.txt_remotetarget.text()):
             QMessageBox(QMessageBox.Critical, 'Error', 'Target field are required', QtGui.QMessageBox.Ok).exec_()
             return False
-    
         return True
         
     def closeEvent(self,event):

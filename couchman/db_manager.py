@@ -175,27 +175,33 @@ class DBManager(QWidget):
         
             Clear old data and create and populate database list of selected server
         """
+        self.ui.tlw_view_list.setEnabled(False)
         self.index = index
         self.server = self.server_list[index]
         self.setWindowTitle("%s - %s"%(self.win_name, self.server['name']))
         if self.server_view_list.get(self.server['url']) is None:
             self.server_view_list[self.server['url']] = {}
-        
         try:
             self.selected_server = Server(str(self.server['url']))
         except:
             self.selected_server = None
+        rows = 0
         for server in self.serv_db_list:
             if server['server'] == self.server['url']:
                 self.server_view_list[self.server['url']] = server["cur_server_dbs"]
                 self.cur_server_dbs = self.server_view_list[self.server['url']]
-                self.db_model = DBListModel(server['cur_server_dbs'], server['db_names'])        
+                self.db_model = DBListModel(server['cur_server_dbs'], server['db_names'])
                 self.ui.tlw_db_list.setModel(self.db_model)
+                if self.ui.tlw_db_list.model().rowCount() > 0: 
+                    rows = 1
+                    self.ui.tlw_db_list.setEnabled(True)
                 self.db_model.update_data()
                 self.view_model = DBViewModel([])
                 self.ui.tlw_view_list.setModel(self.view_model)
                 for i in range(self.db_model.columnCount()):
                     self.ui.tlw_db_list.resizeColumnToContents(i)
+            elif rows == 0:
+                self.ui.tlw_db_list.setEnabled(False)
         self.unsetCursor()
         
     def db_selection_changed(self, index):
