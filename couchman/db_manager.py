@@ -28,6 +28,7 @@ class DBManager(QWidget):
         self.db_workers_list = []
         self.serv_db_list = []
         self.index = -1
+        self.selected_db = None
         self.ui.tlw_db_list.setEnabled(False)
         self.ui.tlw_view_list.setEnabled(False)
         self.disabling_refresh()
@@ -139,14 +140,13 @@ class DBManager(QWidget):
                     if self.index == data['index'] and data["command"] == "end_refresh_all":
                         self.db_model = DBListModel(data['cur_server_dbs'], data['db_names'])        
                         self.ui.tlw_db_list.setModel(self.db_model)
-                        self.ui.tlw_db_list.setEnabled(True)
                         self.ui.btn_clean_views.setEnabled(True)
                         self.ui.btn_compact_db.setEnabled(True)
                         self.ui.btn_compact_views.setEnabled(True)
                         tlw_db_list_sel_model = self.ui.tlw_db_list.selectionModel()
                         i = 0
                         while i < self.ui.tlw_db_list.model().rowCount():
-                            if self.selected_db.name and self.ui.tlw_db_list.model().index(i,0).data() == self.selected_db.name:
+                            if self.selected_db and self.ui.tlw_db_list.model().index(i,0).data() == self.selected_db.name:
                                 j = 0
                                 while j < self.ui.tlw_db_list.model().columnCount():
                                     tlw_db_list_sel_model.select(self.ui.tlw_db_list.model().index(i,j),QItemSelectionModel.Select)
@@ -167,7 +167,8 @@ class DBManager(QWidget):
                             logging.debug('DB Manager: no database found on refresh or you dont have permisions')
                             self.view_model.view_list = []
                             self.view_model.update_data()
-                        self.ui.tlw_view_list.setEnabled(True)
+                        if not self.selected_db: 
+                            self.ui.tlw_db_list.setEnabled(True)
                         self.unsetCursor()
                     if self.index != -1 and self.index != data['index']:
                         self.on_server_changed(self.index)
@@ -401,10 +402,8 @@ Error: %s''' % (data["command"], data['url'], data['db_name'], data["params"], d
                             row_heandler["refreshing"] = "ready"
                             remove_ready.append(worker_obj)
                             flag_was_changes = True
-                            
-
-                            
-                            
+                            self.ui.tlw_db_list.setEnabled(True)
+                            self.ui.tlw_view_list.setEnabled(True)
                         elif data["command"] == "ping":
                             QMessageBox(QMessageBox.Information, 'Information', 
 '''Ping complete successfully.
@@ -415,8 +414,6 @@ Done on: %s''' % (data['url'], data['db_name'], data["params"]["view_name"], dat
                             remove_ready.append(worker_obj)
                             flag_was_changes = True   
                 i += 1
-        
-        
         for worker in remove_ready:
             self.view_workers_list.remove(worker)
         
@@ -424,7 +421,6 @@ Done on: %s''' % (data['url'], data['db_name'], data["params"]["view_name"], dat
             self.view_model.update_data()
             for i in range(self.view_model.columnCount()):
                 self.ui.tlw_view_list.resizeColumnToContents(i) 
-            
     
     def closeEvent(self,event):
         try:
