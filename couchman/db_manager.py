@@ -140,6 +140,9 @@ class DBManager(QWidget):
                         self.db_model = DBListModel(data['cur_server_dbs'], data['db_names'])        
                         self.ui.tlw_db_list.setModel(self.db_model)
                         self.ui.tlw_db_list.setEnabled(True)
+                        self.ui.btn_clean_views.setEnabled(True)
+                        self.ui.btn_compact_db.setEnabled(True)
+                        self.ui.btn_compact_views.setEnabled(True)
                         tlw_db_list_sel_model = self.ui.tlw_db_list.selectionModel()
                         i = 0
                         while i < self.ui.tlw_db_list.model().rowCount():
