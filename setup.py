@@ -24,7 +24,7 @@ setup(name = "couchman",
     packages = find_packages(),
     cmdclass={'build_py': UiToPy},
     package_data = {
-        '': ['media/*'],
+        'couchman': ['media/*'],
     },
     include_package_data = True,
     entry_points = {
