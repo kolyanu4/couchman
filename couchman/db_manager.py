@@ -402,8 +402,6 @@ Error: %s''' % (data["command"], data['url'], data['db_name'], data["params"], d
                             row_heandler["refreshing"] = "ready"
                             remove_ready.append(worker_obj)
                             flag_was_changes = True
-                            self.ui.tlw_db_list.setEnabled(True)
-                            self.ui.tlw_view_list.setEnabled(True)
                         elif data["command"] == "ping":
                             QMessageBox(QMessageBox.Information, 'Information', 
 '''Ping complete successfully.
@@ -419,6 +417,8 @@ Done on: %s''' % (data['url'], data['db_name'], data["params"]["view_name"], dat
         
         if flag_was_changes:
             self.view_model.update_data()
+            self.ui.tlw_db_list.setEnabled(True)
+            self.ui.tlw_view_list.setEnabled(True)            
             for i in range(self.view_model.columnCount()):
                 self.ui.tlw_view_list.resizeColumnToContents(i) 
     
