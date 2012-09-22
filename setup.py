@@ -9,6 +9,7 @@ class UiToPy(_build_py):
         subprocess.check_output(["pyside-uic", "couchman/forms/Server.ui", "-o", "couchman/UI/UI_New_Server.py"])
         subprocess.check_output(["pyside-uic", "couchman/forms/Tasks.ui", "-o", "couchman/UI/UI_New_Task.py"])
         subprocess.check_output(["pyside-uic", "couchman/forms/WorkersWindow.ui", "-o", "couchman/UI/UI_WorkersWindow.py"])
+        subprocess.check_output(["pyside-uic", "couchman/forms/ReplicationWindow.ui", "-o", "couchman/UI/UI_ReplicationWindow.py"])
         _build_py.run(self)
         
 def read(fname):

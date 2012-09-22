@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>812</width>
-    <height>375</height>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,7 +36,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Replicate changes from</string>
+      <string>Replicate changes to</string>
      </property>
     </widget>
    </item>

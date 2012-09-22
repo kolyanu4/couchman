@@ -5,7 +5,8 @@ from PySide.QtGui import *
 from couchdbcurl import Server
 from models import ServerTreeModel, TaskTreeModel
 from server_windows import ServerWindow
-from replication_windows import ReplicationWindow
+from replication_windows import TaskWindow
+from replication import ReplicationWindow
 from db_manager import DBManager
 from workers import ServerWorker, ReplicationWorker
 from workers_list import *
@@ -95,6 +96,7 @@ class MainWindow(QMainWindow):
         
         self.ui.tlw_servers.doubleClicked.connect(self.btn_dbmanager_react)
         
+        self.ui.btn_create_replication.clicked.connect(self.btn_create_replication_react)
         self.ui.btn_addtask.clicked.connect(self.btn_add_replication_react)
         self.ui.btn_starttask.clicked.connect(self.btn_start_replication_react)
         self.ui.btn_start_con.clicked.connect(self.btn_start_con_replication_react)
@@ -282,6 +284,16 @@ class MainWindow(QMainWindow):
         editserver_win.show()
         self.server_windows.append(editserver_win)
     
+    def btn_create_replication_react(self):
+        selectedServer = self.server_model.data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
+        if len(self.tasks_model.tasks_rendered) > 0:
+            selected_task = self.tasks_model.data(self.ui.tlw_replications.currentIndex(), TASK_INFO_ROLE)
+        else:
+            selected_task = None
+        add_replication_win = ReplicationWindow(self, selectedServer)
+        add_replication_win.show()
+        self.replication_windows.append(add_replication_win)
+    
     def btn_add_replication_react(self):
         """Slot for Signal"clicked()" of "Add replication" button
         """
@@ -290,7 +302,7 @@ class MainWindow(QMainWindow):
             selected_task = self.tasks_model.data(self.ui.tlw_replications.currentIndex(), TASK_INFO_ROLE)
         else:
             selected_task = None
-        add_replication_win = ReplicationWindow(self, selectedServer, selected_task)
+        add_replication_win = TaskWindow(self, selectedServer, selected_task)
         add_replication_win.show()
         self.replication_windows.append(add_replication_win)
     

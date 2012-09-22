@@ -5,9 +5,9 @@ from couchdbcurl import Server
 from UI.UI_New_Task import *
 from config import *
 
-class ReplicationWindow(QDialog):
+class TaskWindow(QDialog):
     def __init__(self,mainWindow,server_obj, replication_record):
-        super(ReplicationWindow, self).__init__()
+        super(TaskWindow, self).__init__()
         self.ui = Ui_New_Task_Form()
         self.ui.setupUi(self)
         self.mainWindow = mainWindow
