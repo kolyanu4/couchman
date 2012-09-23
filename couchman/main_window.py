@@ -3,7 +3,7 @@ from time import sleep
 from PySide.QtCore import *
 from PySide.QtGui import *
 from couchdbcurl import Server
-from models import ServerTreeModel, TaskTreeModel
+from models import ServerTreeModel, TaskTreeModel, PersistentTreeModel
 from server_windows import ServerWindow
 from replication_windows import TaskWindow
 from replication import ReplicationWindow
@@ -62,6 +62,7 @@ class MainWindow(QMainWindow):
         self.replication_workers = []
         self.dbs_workers = []
         self.model_list = {}
+        self.persistent_list = {}
         self.server_view_list = {}
         
         self.server_windows = []
@@ -80,6 +81,7 @@ class MainWindow(QMainWindow):
             self.start_worker('server', serv)
             tasks_model = TaskTreeModel(serv)
             self.model_list[serv['url']] = tasks_model
+            self.persistent_list[serv['url']] = None
             self.serv_list.append(serv)
             
         
@@ -214,6 +216,13 @@ class MainWindow(QMainWindow):
             self.ui.tlw_replications.setModel(self.tasks_model)
             self.tasks_model.update_data()
             self.empty_rep_list_status()
+        persistent_model = self.persistent_list[cur_record['url']]
+        if persistent_model:
+            self.ui.tlw_persistent.setModel(persistent_model)
+            persistent_model.update_data()
+        else: 
+            model = PersistentTreeModel()
+            self.ui.tlw_persistent.setModel(model)
     
     def replication_selection_changed(self, cur_index):
         """Signal slot for replications tree view list current index change
@@ -286,10 +295,6 @@ class MainWindow(QMainWindow):
     
     def btn_create_replication_react(self):
         selectedServer = self.server_model.data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
-        if len(self.tasks_model.tasks_rendered) > 0:
-            selected_task = self.tasks_model.data(self.ui.tlw_replications.currentIndex(), TASK_INFO_ROLE)
-        else:
-            selected_task = None
         add_replication_win = ReplicationWindow(self, selectedServer)
         add_replication_win.show()
         self.replication_windows.append(add_replication_win)
@@ -610,7 +615,6 @@ Error details:
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
         
         serv_record = self.server_model.getServByAddress(address)
-        
         if data['error']:
             serv_record["error"] = data['error']
         
@@ -621,6 +625,12 @@ Error details:
         updeted = data.get('updated')
         serv_record['last_update'] = updeted
         self.model_list[address].update_runetime(data.get('tasks'))
+        if data.get('persistent'):
+            persistent_model = PersistentTreeModel(data['persistent'])
+            self.persistent_list[serv_record['url']] = persistent_model
+            if selectedServer['url'] == serv_record['url']: 
+                self.ui.tlw_persistent.setModel(persistent_model)
+                persistent_model.update_data()
         serv_record["version"] = data["version"]
         if  selectedServer == serv_record:
             

@@ -30,7 +30,6 @@ class ServerWorker(multiprocessing.Process):
             except:
                 tasks = None
                 error = sys.exc_value
-                
             try:
                 ver = "ver. %s" % self.db_server.version
                 status = True
@@ -39,9 +38,14 @@ class ServerWorker(multiprocessing.Process):
                 ver = "-"
                 status = False
                 self.tries += 1 
+            try:
+                persistent = self.db_server['_replicator']['_all_docs']
+            except:
+                persistent = None
         else:
             ver = "-"
             tasks = None
+            persistent = None
             status = False
         self.last_update = time()
         if self.tries:
@@ -55,7 +59,8 @@ class ServerWorker(multiprocessing.Process):
                                 "version": ver,
                                 "status": status,
                                 "tasks": tasks,
-                                "error": error,}})
+                                "error": error,
+                                "persistent":persistent}})
         
     def run(self):
         while self.flag:

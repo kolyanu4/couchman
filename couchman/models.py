@@ -1,5 +1,5 @@
-import logging
-from datetime import datetime
+import logging, urlparse
+from datetime import datetime, timedelta
 from PySide import QtGui, QtCore
 from operator import itemgetter
 from config import *
@@ -271,8 +271,112 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
         
         self.need_rendering = False
         self.update_data()
-    
 
+
+class PersistentTreeModel(QtCore.QAbstractTableModel):
+    def __init__(self, replicator = None, parent = None):
+        super(PersistentTreeModel, self).__init__(parent)
+        self.need_rendering = True
+        if replicator:
+            self.replicator = replicator
+        else: 
+            self.replicator = None
+        self.docs_info = []
+        self.headers = ("ID", "State", "Time", "Source", "Target", "Continuous", "Owner", "User Context")
+
+    def data(self, index, role):
+        if not self.replicator: 
+            return None
+        self.render()
+        if not index.isValid() or index.row() < 0:
+            return None
+        if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
+            if index.column() == 0:
+                return self.docs_info[index.row()]["id"]
+            if index.column() == 1:
+                return self.docs_info[index.row()]["info"]["_replication_state"]
+            if index.column() == 2:
+                return str(self.to_date(str(self.docs_info[index.row()]["info"]["_replication_state_time"])))
+            if index.column() == 3:
+                return self.addr(self.docs_info[index.row()]["info"]["source"])
+            if index.column() == 4:
+                return self.addr(self.docs_info[index.row()]["info"]["target"])
+            if index.column() == 5:
+                if self.docs_info[index.row()]["info"]["continuous"]:
+                    return '+'
+                else:
+                    return '-'
+            if index.column() == 6:
+                return self.docs_info[index.row()]["info"]["owner"]
+            if index.column() == 7:
+                return str(self.docs_info[index.row()]["info"]["user_ctx"])
+        elif role == QtCore.Qt.BackgroundColorRole:
+            if index.column() == 1 and self.docs_info[index.row()]["info"]["_replication_state"] != 'triggered':
+                return QtGui.QColor(233,92,92)
+            if index.column() == 2:
+                date = self.to_date(str(self.docs_info[index.row()]["info"]["_replication_state_time"]))
+                
+                if datetime.now() > date+timedelta(minutes=1):
+                    return QtGui.QColor(233,92,92)
+                
+    def to_date(self, date):
+        return datetime.strptime(date.split('+')[0], "%Y-%m-%dT%H:%M:%S")
+        
+
+    def addr(self, addr):
+        url = urlparse.urlparse(addr)
+        if url.username:
+            hidden_url = '%(scheme)s://%(username)s:%(password)s@%(hostname)s%(path)s' % {
+                'scheme': url.scheme,
+                'username': url.username,
+                'password': '*' * 8,
+                'hostname': url.hostname,
+                'path': url.path,
+                'query': url.query,
+                'fragment': url.fragment,
+            }
+        elif url.scheme:
+            hidden_url = '%(scheme)s://%(hostname)s%(path)s' % {
+                'scheme': url.scheme,
+                'username': url.username,
+                'password': '*' * 8,
+                'hostname': url.hostname,
+                'path': url.path,
+                'query': url.query,
+                'fragment': url.fragment,
+            }
+        else:
+            hidden_url = url.path,
+        return hidden_url
+        
+    def render(self):
+        if self.need_rendering:
+            for doc in self.replicator["rows"]: 
+                if doc["id"] != '_design/_replicator':
+                    self.docs_info.append({"id":doc["id"], "info":self.replicator['_db'][doc["id"]]})
+            self.need_rendering = False
+    
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        if self.replicator: 
+            return len(self.replicator["rows"])-1
+        else:
+            return 0
+    
+    def columnCount(self, parent=None):
+        return len(self.headers)
+    
+    def headerData(self, column, orientation, role):
+        if (orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole):
+            try:
+                return self.headers[column]
+            except IndexError:
+                pass
+        return None
+        
+    def update_data(self):
+        self.emit(QtCore.SIGNAL('layoutChanged()'))
+        self.emit(QtCore.SIGNAL('dataChanged(const QModelIndex &, const QModelIndex &)'), self.index(0,0), self.index(self.rowCount(),self.columnCount()))
+        
         
 class DBListModel(QtCore.QAbstractTableModel):
     def __init__(self, server_dbs, db_list,parent = None):
@@ -298,7 +402,6 @@ class DBListModel(QtCore.QAbstractTableModel):
                 return self.headers[column]
             except IndexError:
                 pass
-
         return None
     
     def data(self, index, role):
