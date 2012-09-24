@@ -302,7 +302,7 @@ class PersistentTreeModel(QtCore.QAbstractTableModel):
             if index.column() == 4:
                 return self.addr(self.docs_info[index.row()]["info"]["target"])
             if index.column() == 5:
-                if self.docs_info[index.row()]["info"]["continuous"]:
+                if 'continuous' in self.docs_info[index.row()]["info"] and self.docs_info[index.row()]["info"]["continuous"]:
                     return '+'
                 else:
                     return '-'

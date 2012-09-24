@@ -24,50 +24,47 @@ class ReplicationWindow(QDialog):
 
     def add_react(self): 
         if self.validate():
+            new_replication = {}
             if self.ui.rdb_localsource.isChecked():
                 source = str(self.ui.cmb_localsource.currentText())
             else:
                 source = str(self.ui.txt_remotesource.text())
             if self.ui.cbx_create_target.isChecked():
                 target = str(self.ui.txt_createtarget.text())
-                create_target = True
+                new_replication['create_target'] = True
             else:
-                create_target = False
                 if self.ui.rdb_localtarget.isChecked():
                     target = str(self.ui.cmb_localtarget.currentText())
                 else:
                     target = str(self.ui.txt_remotetarget.text())
+            if str(self.ui.txt_filter.text()): 
+                new_replication['filter'] = str(self.ui.txt_filter.text())
+            if str(self.ui.txt_query.text()): 
+                new_replication['query_params'] = str(self.ui.txt_query.text())
             if source.startswith("http"):
                 if not source.endswith("/"):
                     source += "/"
             if target.startswith("http"):
                 if not target.endswith("/"):
                     target += "/"    
-            if self.ui.cbx_persistent.isChecked():
-                replication_id = str(self.ui.txt_name.text())
-                user_ctx = json.loads(self.ui.txt_userctx.text())
-                if self.ui.cbx_continuous.isChecked():
-                    continuous = True 
-                else:
-                    continuous = False
-                replicator_db = self.serv_obj['_replicator']
-                new_replication = {'source': source, 'target': target, 'continuous': continuous, 'user_ctx': user_ctx, 'create_target': create_target}
-                if replication_id:
-                    try:
-                        replicator_db[replication_id] = new_replication
-                    except: 
-                        QMessageBox(QMessageBox.Warning, 'Error', 'Error: %s' % (sys.exc_value), QtGui.QMessageBox.Ok).exec_()
-                else:
-                    try:
-                        replicator_db.create(new_replication)
-                    except:
-                        QMessageBox(QMessageBox.Warning, 'Error', 'Error: %s' % (sys.exc_value), QtGui.QMessageBox.Ok).exec_()
+            replication_id = str(self.ui.txt_name.text())
+            user_ctx = json.loads(self.ui.txt_userctx.text())
+            new_replication['source'] = source
+            new_replication['target'] = target
+            new_replication['user_ctx'] = user_ctx
+            if self.ui.cbx_continuous.isChecked():
+                new_replication['continuous'] = True
+            replicator_db = self.serv_obj['_replicator']
+            if replication_id:
+                try:
+                    replicator_db[replication_id] = new_replication
+                except: 
+                    QMessageBox(QMessageBox.Warning, 'Error', 'Error: %s' % (sys.exc_value), QtGui.QMessageBox.Ok).exec_()
             else:
-                new_replication = {'source': source, 'target': target}
-                if new_replication in self.server.get('replications'):
-                    QMessageBox(QMessageBox.Warning, 'Warning', 'Record for this replication already exist.', QtGui.QMessageBox.Ok).exec_()
-                else:
-                    self.mainWindow.dump_replication_record(self.server, new_replication)
+                try:
+                    replicator_db.create(new_replication)
+                except:
+                    QMessageBox(QMessageBox.Warning, 'Error', 'Error: %s' % (sys.exc_value), QtGui.QMessageBox.Ok).exec_()
             self.close()
             
             
@@ -78,12 +75,14 @@ class ReplicationWindow(QDialog):
         if not self.ui.rdb_localtarget.isChecked() and not str(self.ui.txt_remotetarget.text()):
             QMessageBox(QMessageBox.Critical, 'Error', 'Target field are required.', QtGui.QMessageBox.Ok).exec_()
             return False
-        if self.ui.cbx_persistent.isChecked():
-            try:
-                json.loads(str(self.ui.txt_userctx.text()))
-            except ValueError:
-                QMessageBox(QMessageBox.Critical, 'Error', 'User_ctx is not in json format.', QtGui.QMessageBox.Ok).exec_()
-                return False
+        if self.ui.cbx_create_target.isChecked() and not str(self.ui.txt_createtarget.text()): 
+            QMessageBox(QMessageBox.Critical, 'Error', 'Target field are required.', QtGui.QMessageBox.Ok).exec_()
+            return False
+        try:
+            json.loads(str(self.ui.txt_userctx.text()))
+        except ValueError:
+            QMessageBox(QMessageBox.Critical, 'Error', 'User_ctx is not in json format.', QtGui.QMessageBox.Ok).exec_()
+            return False
         return True
             
             
