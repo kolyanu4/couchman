@@ -113,9 +113,11 @@ class ServerWindow(QDialog):
             if self.mainWindow.myJson.save(self.mainWindow.serv_list):
                 self.mainWindow.server_workers[self.serv_data["url"]] = self.mainWindow.server_workers[url]
                 self.mainWindow.model_list[self.serv_data["url"]] = self.mainWindow.model_list[url]
+                self.mainWindow.persistent_list[self.serv_data["url"]] = self.mainWindow.persistent_list[url]
                 if url != self.serv_data["url"]: 
                     del self.mainWindow.server_workers[url]
                     del self.mainWindow.model_list[url]
+                    del self.mainWindow.persistent_list[url]
                 obj = self.mainWindow.server_workers[self.serv_data["url"]]
                 pipe = obj['pipe']
                 obj['command'] = 'update_data'

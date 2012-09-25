@@ -625,12 +625,11 @@ Error details:
         updeted = data.get('updated')
         serv_record['last_update'] = updeted
         self.model_list[address].update_runetime(data.get('tasks'))
-        if data.get('persistent'):
+        if data.get('persistent') and selectedServer['url'] == serv_record['url']:
             persistent_model = PersistentTreeModel(data['persistent'])
             self.persistent_list[serv_record['url']] = persistent_model
-            if selectedServer['url'] == serv_record['url']: 
-                self.ui.tlw_persistent.setModel(persistent_model)
-                persistent_model.update_data()
+            self.ui.tlw_persistent.setModel(persistent_model)
+            persistent_model.update_data()
         serv_record["version"] = data["version"]
         if  selectedServer == serv_record:
             
