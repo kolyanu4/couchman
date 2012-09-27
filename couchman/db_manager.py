@@ -128,7 +128,7 @@ class DBManager(QWidget):
                     for i in range(self.view_model.columnCount()):
                         self.ui.tlw_view_list.resizeColumnToContents(i)
                     self.unsetCursor() 
-                elif 'server_url' and 'db_names' and 'cur_server_dbs' in data:
+                elif 'server_url' in data and 'db_names' in data and 'cur_server_dbs' in data:
                     self.serv_db_list.append({ 'server':data['server_url'], "db_names":data['db_names'], 'cur_server_dbs':data['cur_server_dbs'] })
                     if "command" in data and data["command"] == "end_refresh": #or data["command"] == "end_refresh_all":
                         if data["selected_now"]["url"] == data["server_url"]:

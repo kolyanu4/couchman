@@ -276,48 +276,46 @@ class TaskTreeModel(QtCore.QAbstractTableModel):
 class PersistentTreeModel(QtCore.QAbstractTableModel):
     def __init__(self, replicator = None, parent = None):
         super(PersistentTreeModel, self).__init__(parent)
-        self.need_rendering = True
         if replicator:
             self.replicator = replicator
         else: 
             self.replicator = None
-        self.docs_info = []
         self.headers = ("ID", "State", "Time", "Source", "Target", "Continuous", "Owner", "User Context")
 
     def data(self, index, role):
         if not self.replicator: 
             return None
-        self.render()
         if not index.isValid() or index.row() < 0:
             return None
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
             if index.column() == 0:
-                return self.docs_info[index.row()]["id"]
+                return self.replicator[index.row()]["id"]
             if index.column() == 1:
-                return self.docs_info[index.row()]["info"]["_replication_state"]
+                return self.replicator[index.row()]["info"]["_replication_state"]
             if index.column() == 2:
-                return str(self.to_date(str(self.docs_info[index.row()]["info"]["_replication_state_time"])))
+                return str(self.to_date(str(self.replicator[index.row()]["info"]["_replication_state_time"])))
             if index.column() == 3:
-                return self.addr(self.docs_info[index.row()]["info"]["source"])
+                return self.addr(self.replicator[index.row()]["info"]["source"])
             if index.column() == 4:
-                return self.addr(self.docs_info[index.row()]["info"]["target"])
+                return self.addr(self.replicator[index.row()]["info"]["target"])
             if index.column() == 5:
-                if 'continuous' in self.docs_info[index.row()]["info"] and self.docs_info[index.row()]["info"]["continuous"]:
+                if 'continuous' in self.replicator[index.row()]["info"] and self.replicator[index.row()]["info"]["continuous"]:
                     return '+'
                 else:
                     return '-'
             if index.column() == 6:
-                return self.docs_info[index.row()]["info"]["owner"]
+                return self.replicator[index.row()]["info"]["owner"]
             if index.column() == 7:
-                return str(self.docs_info[index.row()]["info"]["user_ctx"])
+                return str(self.replicator[index.row()]["info"]["user_ctx"])
         elif role == QtCore.Qt.BackgroundColorRole:
-            if index.column() == 1 and self.docs_info[index.row()]["info"]["_replication_state"] != 'triggered':
+            if index.column() == 1 and self.replicator[index.row()]["info"]["_replication_state"] != 'triggered':
                 return QtGui.QColor(233,92,92)
             if index.column() == 2:
-                date = self.to_date(str(self.docs_info[index.row()]["info"]["_replication_state_time"]))
+                if '_replication_state_time' in str(self.replicator[index.row()]["info"]):
+                    date = self.to_date(str(self.replicator[index.row()]["info"]["_replication_state_time"]))
                 
-                if datetime.now() > date+timedelta(minutes=1):
-                    return QtGui.QColor(233,92,92)
+                    if datetime.now() > date+timedelta(minutes=1):
+                        return QtGui.QColor(233,92,92)
                 
     def to_date(self, date):
         return datetime.strptime(date.split('+')[0], "%Y-%m-%dT%H:%M:%S")
@@ -349,16 +347,9 @@ class PersistentTreeModel(QtCore.QAbstractTableModel):
             hidden_url = url.path,
         return hidden_url
         
-    def render(self):
-        if self.need_rendering:
-            for doc in self.replicator["rows"]: 
-                if doc["id"] != '_design/_replicator':
-                    self.docs_info.append({"id":doc["id"], "info":self.replicator['_db'][doc["id"]]})
-            self.need_rendering = False
-    
     def rowCount(self, parent=QtCore.QModelIndex()):
         if self.replicator: 
-            return len(self.replicator["rows"])-1
+            return len(self.replicator)
         else:
             return 0
     

@@ -92,6 +92,40 @@ class ServerWorker(multiprocessing.Process):
                 
                 
 
+class ReplicatorWorker(multiprocessing.Process):
+    def __init__(self,pipe,url):
+        multiprocessing.Process.__init__(self)
+        self.pipe = pipe
+        self.url = url
+        self.db_server = Server(str(url))
+        self.docs_info = []
+        
+        
+    def run(self):
+        while True:
+            while self.pipe.poll():
+                data = self.pipe.recv()
+                if "command" in data:
+                    command = data['command']
+                    if command == "get_replicator_docs":
+                        try:
+                            persistent = self.db_server['_replicator']['_all_docs']
+                        except:
+                            persistent = None
+                        if persistent:
+                            for doc in persistent["rows"]: 
+                                if doc["id"] != '_design/_replicator':
+                                    self.docs_info.append({"id":doc["id"], "info":persistent['_db'][doc["id"]]})
+                            self.pipe.send({"command": "end_get_replicator_docs", 
+                                            "data":{"url": self.url,
+                                                    "docs":self.docs_info}})
+                        else:
+                            self.pipe.send({"command": "end_get_replicator_docs", 
+                                            "data":{"url": self.url,
+                                                    "docs": None}})
+                        self.docs_info = []
+            sleep(0.5)
+
 class ReplicationWorker(multiprocessing.Process):
     
     def __init__(self,pipe,data):
