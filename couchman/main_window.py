@@ -216,7 +216,14 @@ class MainWindow(QMainWindow):
                 self.ui.tlw_replications.setEnabled(True)
                 
             for i in range(self.tasks_model.columnCount()):
-                self.ui.tlw_replications.resizeColumnToContents(i) 
+                self.ui.tlw_replications.resizeColumnToContents(i)
+            persistent_model = self.persistent_list[cur_record['url']]
+            if persistent_model:
+                self.ui.tlw_persistent.setModel(persistent_model)
+                persistent_model.update_data()
+            else: 
+                self.ui.tlw_persistent.setModel([])
+                persistent_model.update_data()
                 
         else:
             self.ui.lbl_status.setText('Disabled')
@@ -224,10 +231,6 @@ class MainWindow(QMainWindow):
             self.ui.tlw_replications.setModel(self.tasks_model)
             self.tasks_model.update_data()
             self.empty_rep_list_status()
-        persistent_model = self.persistent_list[cur_record['url']]
-        if persistent_model:
-            self.ui.tlw_persistent.setModel(persistent_model)
-            persistent_model.update_data()
     
     def replication_selection_changed(self, cur_index):
         """Signal slot for replications tree view list current index change
@@ -555,7 +558,22 @@ class MainWindow(QMainWindow):
     def mainTimer_update(self):
         """Main worker loop. Take care for data that was received from workers of each type
         """
+        for item_key in self.replicator_workers:
+            obj = self.replicator_workers[item_key]
+            worker = obj.get('pipe')
+            while worker.poll():
+                data = worker.recv()
+                if "command" in data:
+                    if data["command"] == "end_get_replicator_docs":
+                        persistent_model = PersistentTreeModel(data['data']['docs'])
+                        self.persistent_list[item_key] = persistent_model
         
+                        select_serv = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
+                        if select_serv['url'] == item_key:
+                            persistent_model = self.persistent_list[select_serv['url']]
+                            self.ui.tlw_persistent.setModel(persistent_model)
+                            persistent_model.update_data()
+                            
         for item_key in self.server_workers:
             obj = self.server_workers[item_key]
             worker = obj.get('pipe')
@@ -568,21 +586,7 @@ class MainWindow(QMainWindow):
                         #print "timer: update server status for %s" % data["url"]
                         #print "new task list: %s" % data.get('tasks')
                         self.update_server_data(data.get("url"), data.get("data"))
-                        
-        for item_key in self.replicator_workers:
-            obj = self.replicator_workers[item_key]
-            worker = obj.get('pipe')
-            while worker.poll():
-                data = worker.recv()
-                if "command" in data:
-                    if data["command"] == "end_get_replicator_docs":
-                        persistent_model = PersistentTreeModel(data['data']['docs'])
-                        self.persistent_list[item_key] = persistent_model
-        
-        select_serv = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
-        persistent_model = self.persistent_list[select_serv['url']]
-        self.ui.tlw_persistent.setModel(persistent_model)
-        persistent_model.update_data()
+
         for rep in self.replication_workers:
             worker = rep.get('pipe')
             while worker and worker.poll():
