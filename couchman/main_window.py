@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         self.ui.actionWorkers.triggered.connect(self.btn_workers_list_react)
         
         #set model for server treeview
-        self.cleared_persistent_model = PersistentTreeModel()
+        #self.cleared_persistent_model = PersistentTreeModel()
 
         logging.debug("MainWindow: set model for server treeview list")
         self.server_model = ServerTreeModel(self)
@@ -222,8 +222,8 @@ class MainWindow(QMainWindow):
             if persistent_model:
                 self.ui.tlw_persistent.setModel(persistent_model)
                 persistent_model.update_data()
-            else: 
-                self.ui.tlw_persistent.setModel(self.cleared_persistent_model)
+            #else: 
+                #self.ui.tlw_persistent.setModel(self.cleared_persistent_model)
                 
         else:
             self.ui.lbl_status.setText('Disabled')

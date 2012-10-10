@@ -140,17 +140,17 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QRadioButton" name="rdb_remotetarget">
-          <property name="text">
-           <string>Remote database:</string>
-          </property>
-         </widget>
-        </item>
         <item row="0" column="1">
          <widget class="QComboBox" name="cmb_localtarget">
           <property name="currentIndex">
            <number>-1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QRadioButton" name="rdb_remotetarget">
+          <property name="text">
+           <string>Remote database:</string>
           </property>
          </widget>
         </item>
@@ -183,6 +183,23 @@
      </layout>
     </widget>
    </item>
+   <item row="9" column="1">
+    <widget class="QPushButton" name="btn_save">
+     <property name="text">
+      <string>Add</string>
+     </property>
+     <property name="default">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="2">
+    <widget class="QPushButton" name="btn_cancel">
+     <property name="text">
+      <string>Cancel</string>
+     </property>
+    </widget>
+   </item>
    <item row="7" column="0" colspan="4">
     <layout class="QGridLayout" name="gridLayout_2" columnstretch="4,0">
      <property name="leftMargin">
@@ -200,7 +217,7 @@
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
        </property>
        <property name="leftMargin">
-        <number>24</number>
+        <number>5</number>
        </property>
        <item row="1" column="0">
         <widget class="QLabel" name="label_4">
@@ -259,8 +276,8 @@
       <widget class="QCheckBox" name="cbx_continuous">
        <property name="font">
         <font>
-         <weight>75</weight>
-         <bold>true</bold>
+         <weight>50</weight>
+         <bold>false</bold>
         </font>
        </property>
        <property name="text">
@@ -269,23 +286,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="9" column="1">
-    <widget class="QPushButton" name="btn_save">
-     <property name="text">
-      <string>Add</string>
-     </property>
-     <property name="default">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="2">
-    <widget class="QPushButton" name="btn_cancel">
-     <property name="text">
-      <string>Cancel</string>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>
