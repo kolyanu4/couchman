@@ -222,8 +222,7 @@ class MainWindow(QMainWindow):
                 self.ui.tlw_persistent.setModel(persistent_model)
                 persistent_model.update_data()
             else: 
-                self.ui.tlw_persistent.setModel([])
-                persistent_model.update_data()
+                self.ui.tlw_persistent.model().reset()
                 
         else:
             self.ui.lbl_status.setText('Disabled')
