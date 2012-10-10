@@ -35,19 +35,9 @@ class TaskWindow(QDialog):
         task_source = ""
         task_target = ""
         
-        if cur_type == 0:
-            txt_lst = replication_record.get('task').split(' ')
-            task_source = txt_lst[1]
-            task_target = txt_lst[3]
-        
         for i, value in enumerate(db_names):
             self.ui.cmb_localsource.addItem(value, userData=value)
-            if value == task_source:
-                self.ui.cmb_localsource.setCurrentIndex(i)
-
             self.ui.cmb_localtarget.addItem(value, userData=value)
-            if value == task_target:
-                self.ui.cmb_localtarget.setCurrentIndex(i)
                 
                 
         if task_source.startswith("http://"):
