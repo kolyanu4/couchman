@@ -288,22 +288,22 @@ class PersistentTreeModel(QtCore.QAbstractTableModel):
         if not index.isValid() or index.row() < 0:
             return None
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
-            if index.column() == 0:
+            if index.column() == 0 and "id" in self.replicator[index.row()]["info"]:
                 return self.replicator[index.row()]["id"]
-            if index.column() == 1:
+            if index.column() == 1 and "_replication_state" in self.replicator[index.row()]["info"]:
                 return self.replicator[index.row()]["info"]["_replication_state"]
-            if index.column() == 2:
+            if index.column() == 2 and "_replication_state_time" in self.replicator[index.row()]["info"]:
                 return str(self.to_date(str(self.replicator[index.row()]["info"]["_replication_state_time"])))
             if index.column() == 3:
                 return self.addr(self.replicator[index.row()]["info"]["source"])
-            if index.column() == 4:
+            if index.column() == 4 :
                 return self.addr(self.replicator[index.row()]["info"]["target"])
             if index.column() == 5:
                 if 'continuous' in self.replicator[index.row()]["info"] and self.replicator[index.row()]["info"]["continuous"]:
                     return '+'
                 else:
                     return '-'
-            if index.column() == 6:
+            if index.column() == 6 and "owner" in self.replicator[index.row()]["info"]:
                 return self.replicator[index.row()]["info"]["owner"]
             if index.column() == 7:
                 if 'user_ctx' in self.replicator[index.row()]["info"]:
