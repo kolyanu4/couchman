@@ -116,6 +116,8 @@ class ReplicatorWorker(multiprocessing.Process):
                             for doc in persistent["rows"]: 
                                 if doc["id"] != '_design/_replicator':
                                     self.docs_info.append({"id":doc["id"], "info":persistent['_db'][doc["id"]]})
+                                    if not "source" in persistent['_db'][doc["id"]]: 
+                                        print 'There is no source in %s. Doc ID: %s' % (persistent['_db'].name, persistent['_db'][doc["id"]]["_id"])
                             self.pipe.send({"command": "end_get_replicator_docs", 
                                             "data":{"url": self.url,
                                                     "docs":self.docs_info}})

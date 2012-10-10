@@ -288,7 +288,7 @@ class PersistentTreeModel(QtCore.QAbstractTableModel):
         if not index.isValid() or index.row() < 0:
             return None
         if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.ToolTipRole:
-            if index.column() == 0 and "id" in self.replicator[index.row()]["info"]:
+            if index.column() == 0 and "id" in self.replicator[index.row()]:
                 return self.replicator[index.row()]["id"]
             if index.column() == 1 and "_replication_state" in self.replicator[index.row()]["info"]:
                 return self.replicator[index.row()]["info"]["_replication_state"]
@@ -309,7 +309,7 @@ class PersistentTreeModel(QtCore.QAbstractTableModel):
                 if 'user_ctx' in self.replicator[index.row()]["info"]:
                     return str(self.replicator[index.row()]["info"]["user_ctx"])
         elif role == QtCore.Qt.BackgroundColorRole:
-            if index.column() == 1 and self.replicator[index.row()]["info"]["_replication_state"] != 'triggered':
+            if index.column() == 1 and "_replication_state" in self.replicator[index.row()]["info"] and self.replicator[index.row()]["info"]["_replication_state"] != 'triggered':
                 return QtGui.QColor(233,92,92)
             if index.column() == 2:
                 if '_replication_state_time' in str(self.replicator[index.row()]["info"]):
