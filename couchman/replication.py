@@ -18,6 +18,8 @@ class ReplicationWindow(QDialog):
         for db in self.serv_obj:
             db_names.append(db)
         db_names.sort()
+        self.ui.cmb_localsource.addItem("-", userData="-")
+        self.ui.cmb_localtarget.addItem("-", userData="-")
         for i, value in enumerate(db_names):
             self.ui.cmb_localsource.addItem(value, userData=value)
             self.ui.cmb_localtarget.addItem(value, userData=value)
@@ -70,10 +72,10 @@ class ReplicationWindow(QDialog):
             
             
     def validate(self):
-        if not self.ui.rdb_localsource.isChecked() and not str(self.ui.txt_remotesource.text()):
+        if not self.ui.rdb_localsource.isChecked() and not str(self.ui.txt_remotesource.text()) or str(self.ui.cmb_localsource.currentText()) == "-":
             QMessageBox(QMessageBox.Critical, 'Error', 'Source field are required.', QtGui.QMessageBox.Ok).exec_()
             return False
-        if not self.ui.rdb_localtarget.isChecked() and not str(self.ui.txt_remotetarget.text()):
+        if not self.ui.rdb_localtarget.isChecked() and not str(self.ui.txt_remotetarget.text()) or (str(self.ui.cmb_localtarget.currentText()) == "-" and not self.ui.cbx_create_target.isChecked()):
             QMessageBox(QMessageBox.Critical, 'Error', 'Target field are required.', QtGui.QMessageBox.Ok).exec_()
             return False
         if self.ui.cbx_create_target.isChecked() and not str(self.ui.txt_createtarget.text()): 

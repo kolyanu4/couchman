@@ -6,14 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>843</width>
-    <height>508</height>
+    <width>819</width>
+    <height>472</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Create replication</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" columnstretch="5,0,0,0">
+  <layout class="QGridLayout" name="gridLayout" rowstretch="1,1,1,1,1,1,1,1,1,5" columnstretch="5,0,0,0">
    <item row="1" column="0" colspan="2">
     <widget class="QLabel" name="label">
      <property name="font">
@@ -23,7 +29,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Replicate changes from</string>
+      <string>Source</string>
      </property>
     </widget>
    </item>
@@ -32,6 +38,18 @@
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <layout class="QFormLayout" name="formLayout">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMaximumSize</enum>
+        </property>
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="labelAlignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
         <property name="leftMargin">
          <number>15</number>
         </property>
@@ -79,37 +97,41 @@
       </font>
      </property>
      <property name="text">
-      <string>Replicate changes to</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="3">
-    <widget class="QPushButton" name="btn_cancel">
-     <property name="text">
-      <string>Cancel</string>
-     </property>
-    </widget>
-   </item>
-   <item row="10" column="2">
-    <widget class="QPushButton" name="btn_save">
-     <property name="text">
-      <string>Add</string>
-     </property>
-     <property name="default">
-      <bool>true</bool>
+      <string>Target</string>
      </property>
     </widget>
    </item>
    <item row="4" column="0" colspan="4">
     <widget class="QWidget" name="verticalWidget_2" native="true">
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <layout class="QFormLayout" name="formLayout_2">
+        <property name="fieldGrowthPolicy">
+         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+        </property>
+        <property name="labelAlignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+        <property name="formAlignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
         <property name="leftMargin">
          <number>15</number>
         </property>
         <item row="0" column="0">
          <widget class="QRadioButton" name="rdb_localtarget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
           <property name="text">
            <string>Local database:</string>
           </property>
@@ -126,7 +148,11 @@
          </widget>
         </item>
         <item row="0" column="1">
-         <widget class="QComboBox" name="cmb_localtarget"/>
+         <widget class="QComboBox" name="cmb_localtarget">
+          <property name="currentIndex">
+           <number>-1</number>
+          </property>
+         </widget>
         </item>
         <item row="1" column="1">
          <widget class="QLineEdit" name="txt_remotetarget">
@@ -138,62 +164,26 @@
           </property>
          </widget>
         </item>
+        <item row="2" column="0">
+         <widget class="QRadioButton" name="cbx_create_target">
+          <property name="text">
+           <string>Create target:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QLineEdit" name="txt_createtarget">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
     </widget>
    </item>
-   <item row="9" column="0" colspan="4">
-    <layout class="QVBoxLayout" name="verticalLayout_8">
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <item>
-      <widget class="QCheckBox" name="cbx_create_target">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Create target</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QFormLayout" name="formLayout_5">
-       <property name="leftMargin">
-        <number>24</number>
-       </property>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::RightToLeft</enum>
-         </property>
-         <property name="text">
-          <string>Target:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="txt_createtarget">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-    </layout>
-   </item>
-   <item row="0" column="0" colspan="4">
+   <item row="7" column="0" colspan="4">
     <layout class="QGridLayout" name="gridLayout_2" columnstretch="4,0">
      <property name="leftMargin">
       <number>0</number>
@@ -203,37 +193,43 @@
        <property name="fieldGrowthPolicy">
         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
        </property>
+       <property name="labelAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+       <property name="formAlignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
        <property name="leftMargin">
         <number>24</number>
        </property>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Name:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="txt_name">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
         <widget class="QLabel" name="label_4">
          <property name="text">
           <string>User_ctx:</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="1" column="1">
         <widget class="QLineEdit" name="txt_userctx">
          <property name="enabled">
           <bool>true</bool>
          </property>
          <property name="text">
           <string>{&quot;roles&quot;:[&quot;_admin&quot;]}</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Name:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="txt_name">
+         <property name="enabled">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -247,14 +243,14 @@
        <item row="3" column="1">
         <widget class="QLineEdit" name="txt_filter"/>
        </item>
-       <item row="4" column="0">
+       <item row="5" column="0">
         <widget class="QLabel" name="label_7">
          <property name="text">
           <string>Query params:</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
+       <item row="5" column="1">
         <widget class="QLineEdit" name="txt_query"/>
        </item>
       </layout>
@@ -273,6 +269,23 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="9" column="1">
+    <widget class="QPushButton" name="btn_save">
+     <property name="text">
+      <string>Add</string>
+     </property>
+     <property name="default">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="2">
+    <widget class="QPushButton" name="btn_cancel">
+     <property name="text">
+      <string>Cancel</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
@@ -361,48 +374,16 @@
   <connection>
    <sender>cbx_create_target</sender>
    <signal>toggled(bool)</signal>
-   <receiver>verticalWidget_2</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>421</x>
-     <y>238</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>421</x>
-     <y>180</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbx_create_target</sender>
-   <signal>toggled(bool)</signal>
    <receiver>txt_createtarget</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>421</x>
-     <y>342</y>
+     <x>94</x>
+     <y>439</y>
     </hint>
     <hint type="destinationlabel">
-     <x>469</x>
-     <y>374</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cbx_create_target</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>label_5</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>421</x>
-     <y>342</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>57</x>
-     <y>374</y>
+     <x>507</x>
+     <y>442</y>
     </hint>
    </hints>
   </connection>
