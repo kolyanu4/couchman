@@ -33,7 +33,7 @@ class MainWindow(QMainWindow):
         self.ui.actionWorkers.triggered.connect(self.btn_workers_list_react)
         
         #set model for server treeview
-        #self.cleared_persistent_model = PersistentTreeModel()
+        self.cleared_persistent_model = PersistentTreeModel()
 
         logging.debug("MainWindow: set model for server treeview list")
         self.server_model = ServerTreeModel(self)
@@ -222,8 +222,8 @@ class MainWindow(QMainWindow):
             if persistent_model:
                 self.ui.tlw_persistent.setModel(persistent_model)
                 persistent_model.update_data()
-            #else: 
-                #self.ui.tlw_persistent.setModel(self.cleared_persistent_model)
+            else: 
+                self.ui.tlw_persistent.setModel(self.cleared_persistent_model)
                 
         else:
             self.ui.lbl_status.setText('Disabled')
@@ -558,6 +558,8 @@ class MainWindow(QMainWindow):
     def mainTimer_update(self):
         """Main worker loop. Take care for data that was received from workers of each type
         """
+        print 'Main Timer upd start'
+        print 'start replicator upd' 
         for item_key in self.replicator_workers:
             obj = self.replicator_workers[item_key]
             worker = obj.get('pipe')
@@ -573,7 +575,8 @@ class MainWindow(QMainWindow):
                             persistent_model = self.persistent_list[select_serv['url']]
                             self.ui.tlw_persistent.setModel(persistent_model)
                             persistent_model.update_data()
-                            
+        print 'end replicator upd'                  
+        print 'start server upd'                  
         for item_key in self.server_workers:
             obj = self.server_workers[item_key]
             worker = obj.get('pipe')
@@ -586,7 +589,8 @@ class MainWindow(QMainWindow):
                         #print "timer: update server status for %s" % data["url"]
                         #print "new task list: %s" % data.get('tasks')
                         self.update_server_data(data.get("url"), data.get("data"))
-
+        print 'end server upd'
+        print 'start tasks upd'
         for rep in self.replication_workers:
             worker = rep.get('pipe')
             while worker and worker.poll():
@@ -630,11 +634,13 @@ Error details:
                         
                         
                     self.replication_workers.remove(rep)
+        print 'end tasks upd'   
                     
                         
     def update_server_data(self,address,data):
         """Update server data record that was received by worker
         """
+        print 'start server data upd'
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
         
         serv_record = self.server_model.getServByAddress(address)
@@ -663,7 +669,8 @@ Error details:
             else:
                 self.ui.tlw_replications.setEnabled(True)
            
-        self.server_model.update_data();  
+        self.server_model.update_data();
+        print 'end server data upd' 
         
     
     def closeEvent(self,event):
