@@ -306,7 +306,8 @@ class PersistentTreeModel(QtCore.QAbstractTableModel):
             if index.column() == 6:
                 return self.replicator[index.row()]["info"]["owner"]
             if index.column() == 7:
-                return str(self.replicator[index.row()]["info"]["user_ctx"])
+                if 'user_ctx' in self.replicator[index.row()]["info"]:
+                    return str(self.replicator[index.row()]["info"]["user_ctx"])
         elif role == QtCore.Qt.BackgroundColorRole:
             if index.column() == 1 and self.replicator[index.row()]["info"]["_replication_state"] != 'triggered':
                 return QtGui.QColor(233,92,92)

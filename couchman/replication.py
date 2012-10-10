@@ -48,10 +48,11 @@ class ReplicationWindow(QDialog):
                 if not target.endswith("/"):
                     target += "/"    
             replication_id = str(self.ui.txt_name.text())
-            user_ctx = json.loads(self.ui.txt_userctx.text())
+            if str(self.ui.txt_userctx.text()):
+                user_ctx = json.loads(self.ui.txt_userctx.text())
+                new_replication['user_ctx'] = user_ctx
             new_replication['source'] = source
             new_replication['target'] = target
-            new_replication['user_ctx'] = user_ctx
             if self.ui.cbx_continuous.isChecked():
                 new_replication['continuous'] = True
             replicator_db = self.serv_obj['_replicator']
@@ -79,7 +80,8 @@ class ReplicationWindow(QDialog):
             QMessageBox(QMessageBox.Critical, 'Error', 'Target field are required.', QtGui.QMessageBox.Ok).exec_()
             return False
         try:
-            json.loads(str(self.ui.txt_userctx.text()))
+            if str(self.ui.txt_userctx.text()):
+                json.loads(str(self.ui.txt_userctx.text()))
         except ValueError:
             QMessageBox(QMessageBox.Critical, 'Error', 'User_ctx is not in json format.', QtGui.QMessageBox.Ok).exec_()
             return False
