@@ -34,7 +34,8 @@ class MainWindow(QMainWindow):
         
         #set model for server treeview
         self.cleared_persistent_model = PersistentTreeModel()
-
+        self.ui.tlw_persistent.setModel(self.cleared_persistent_model)
+        
         logging.debug("MainWindow: set model for server treeview list")
         self.server_model = ServerTreeModel(self)
         
@@ -126,6 +127,10 @@ class MainWindow(QMainWindow):
         self.ui.btn_refresh_sel.setIcon(QtGui.QIcon(ROOT_DIR+'/media/refresh.png'))
         self.ui.actionDB_Manager.setIcon(QtGui.QIcon(ROOT_DIR+'/media/workflow.png'))
         
+        self.replicator_list_timer = QTimer()
+        self.connect(self.replicator_list_timer, QtCore.SIGNAL("timeout()"), self.replicator_list_update) 
+        self.replicator_list_timer.start(2000)
+        
         self.timer.start(300)
         
     
@@ -202,7 +207,8 @@ class MainWindow(QMainWindow):
             self.ui.lbl_lastupdate.setText("infinity")
         self.ui.btn_refresh_sel.setEnabled(True)
         #self.replicationListEnabled(False)
-        
+        self_pipe = self.replicator_workers[cur_record['url']]['pipe']
+        self_pipe.send({'command':'get_replicator_docs'})
         if cur_record.get('status') == True:
             self.ui.lbl_status.setText('Enabled')
             self.tasks_model = self.model_list[cur_record['url']]
@@ -558,25 +564,6 @@ class MainWindow(QMainWindow):
     def mainTimer_update(self):
         """Main worker loop. Take care for data that was received from workers of each type
         """
-        print 'Main Timer upd start'
-        print 'start replicator upd' 
-        for item_key in self.replicator_workers:
-            obj = self.replicator_workers[item_key]
-            worker = obj.get('pipe')
-            while worker.poll():
-                data = worker.recv()
-                if "command" in data:
-                    if data["command"] == "end_get_replicator_docs":
-                        persistent_model = PersistentTreeModel(data['data']['docs'])
-                        self.persistent_list[item_key] = persistent_model
-        
-                        select_serv = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
-                        if select_serv['url'] == item_key:
-                            persistent_model = self.persistent_list[select_serv['url']]
-                            self.ui.tlw_persistent.setModel(persistent_model)
-                            persistent_model.update_data()
-        print 'end replicator upd'                  
-        print 'start server upd'                  
         for item_key in self.server_workers:
             obj = self.server_workers[item_key]
             worker = obj.get('pipe')
@@ -589,8 +576,7 @@ class MainWindow(QMainWindow):
                         #print "timer: update server status for %s" % data["url"]
                         #print "new task list: %s" % data.get('tasks')
                         self.update_server_data(data.get("url"), data.get("data"))
-        print 'end server upd'
-        print 'start tasks upd'
+
         for rep in self.replication_workers:
             worker = rep.get('pipe')
             while worker and worker.poll():
@@ -634,13 +620,11 @@ Error details:
                         
                         
                     self.replication_workers.remove(rep)
-        print 'end tasks upd'   
                     
                         
     def update_server_data(self,address,data):
         """Update server data record that was received by worker
         """
-        print 'start server data upd'
         selectedServer = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
         
         serv_record = self.server_model.getServByAddress(address)
@@ -653,8 +637,6 @@ Error details:
         updeted = data.get('updated')
         serv_record['last_update'] = updeted
         self.model_list[address].update_runetime(data.get('tasks'))
-        self_pipe = self.replicator_workers[selectedServer['url']]['pipe']
-        self_pipe.send({'command':'get_replicator_docs'})            
         serv_record["version"] = data["version"]
         if  selectedServer == serv_record:
             
@@ -669,9 +651,27 @@ Error details:
             else:
                 self.ui.tlw_replications.setEnabled(True)
            
-        self.server_model.update_data();
-        print 'end server data upd' 
+        self.server_model.update_data();  
         
+        
+    def replicator_list_update(self): 
+        for item_key in self.replicator_workers:
+            obj = self.replicator_workers[item_key]
+            worker = obj.get('pipe')
+            while worker.poll():
+                data = worker.recv()
+                if "command" in data:
+                    if data["command"] == "end_get_replicator_docs":
+                        persistent_model = PersistentTreeModel(data['data']['docs'])
+                        self.persistent_list[item_key] = persistent_model
+                        select_serv = self.ui.tlw_servers.model().data(self.ui.tlw_servers.currentIndex(), SERVER_INFO_ROLE)
+                        if select_serv['url'] == item_key:
+                            persistent_model = self.persistent_list[select_serv['url']]
+                            self.ui.tlw_persistent.setModel(persistent_model)
+                            persistent_model.update_data()
+                            self_pipe = self.replicator_workers[select_serv['url']]['pipe']
+                            self_pipe.send({'command':'get_replicator_docs'})
+    
     
     def closeEvent(self,event):
         """Close all workers and opened windows before closing self

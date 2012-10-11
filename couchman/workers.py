@@ -20,7 +20,6 @@ class ServerWorker(multiprocessing.Process):
             self.update_period = float(default['autoupdate'])
         
         self.last_update = time()
-        print 'create server worker'
     
     def update(self):
         #logging.debug("worker: update command for %s" % self.address)
@@ -62,8 +61,6 @@ class ServerWorker(multiprocessing.Process):
                                 "tasks": tasks,
                                 "error": error,
                                 "persistent":persistent}})
-        print 'create server worker update end'
-
         
     def run(self):
         while self.flag:
@@ -87,7 +84,6 @@ class ServerWorker(multiprocessing.Process):
                         self.flag = False
                         
                         return
-                
             sleep(0.05)
             
             if self.update_period and time() > self.last_update + self.update_period and self.server['enabled']:
@@ -102,10 +98,8 @@ class ReplicatorWorker(multiprocessing.Process):
         self.url = url
         self.db_server = Server(str(url))
         self.docs_info = []
-        print 'create replicator worker'
         
     def run(self):
-        print 'start replicator worker'
         while True:
             while self.pipe.poll():
                 data = self.pipe.recv()
@@ -116,6 +110,7 @@ class ReplicatorWorker(multiprocessing.Process):
                             persistent = self.db_server['_replicator']['_all_docs']
                         except:
                             persistent = None
+                            logging.debug("replicator worker error: %s" % sys.exc_info()[1])
                         if persistent:
                             for doc in persistent["rows"]: 
                                 if not doc["id"].startswith('_design/'):
@@ -131,7 +126,6 @@ class ReplicatorWorker(multiprocessing.Process):
                                                     "docs": None}})
                         self.docs_info = []
             sleep(0.5)
-            print 'end replicator worker'
 
 class ReplicationWorker(multiprocessing.Process):
     
@@ -150,7 +144,7 @@ class ReplicationWorker(multiprocessing.Process):
         self.server_address = server.get('url')
         self.db_server = Server(str(self.server_address))
         self.flag = True
-        print 'create tasks worker'
+        
         
     def run(self):
 
@@ -263,7 +257,7 @@ class ViewWorker(multiprocessing.Process):
         self.address = url
         self.db_server = Server(str(self.address))
         self.db = self.db_server[db_name]
-        print 'create view worker'
+        
     
     def send_error(self, error):
         self.pipe.send({"command":self.command,
@@ -320,7 +314,7 @@ class DbWorker(multiprocessing.Process):
         else:
             self.cur_server_dbs = {}
         self.db_names = []
-        print 'create db manager worker'
+        
     
     def send_error(self, error):
         self.pipe.send({"command":self.command,
